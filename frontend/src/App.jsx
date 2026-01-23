@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import './landingpage'
+import HealthMate from'./landingpage'
 import "./index.css";
 
 function App() {
@@ -8,7 +8,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* <Route path="/login" element={<Login />} /> */}
+        <Route path="/" element={<HealthMate />} />
       </Routes>
     </BrowserRouter>
   );
