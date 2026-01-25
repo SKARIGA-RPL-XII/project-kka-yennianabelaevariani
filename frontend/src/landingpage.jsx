@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import dokter from "./assets/image/dokternunjuk.png";
 import about from "./assets/image/fotoabout.png";
 
+
 // Sub-Komponen Navbar (Menerima props isDarkMode)
 const Navbar = ({ isDark }) => (
   <nav
