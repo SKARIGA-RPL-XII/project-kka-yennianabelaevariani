@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import dokter from "./assets/image/dokternunjuk.png";
 import about from "./assets/image/fotoabout.png";
+import chat from "./assets/icon/chatbot.png";
+import keamanan from "./assets/icon/Keamanan.png";
+import skrining from "./assets/icon/Skrining.png";
+import rekom from "./assets/icon/rekomendasi.png";
+// import SplashCursor from "./component/SplashCursor";
 
 
 // Sub-Komponen Navbar (Menerima props isDarkMode)
@@ -56,28 +61,28 @@ const FeatureCard = ({ icon, title, desc, delay, isDark }) => (
     viewport={{ once: true }}
     transition={{ duration: 0.5, delay }}
     whileHover={{ y: -10 }}
-    className={`flex flex-col items-center text-center max-w-[220px] p-6 rounded-2xl border transition-all duration-500 ${
+    className={`flex flex-col items-center text-center max-w-[350px] p-6 rounded-2xl transition-all duration-500 ${
       isDark
-        ? "bg-[#0a1120] border-slate-800 hover:border-blue-500/50 shadow-lg"
-        : "bg-white/50 border-white shadow-sm hover:shadow-xl backdrop-blur-sm"
+        ? "border-slate-800 hover:border-blue-500/50 "
+        : "bg-white/50 border-white hover:shadow-xl backdrop-blur-sm"
     }`}
   >
     <div
-      className={`w-24 h-24 mb-4 flex items-center justify-center rounded-full p-4 transition-colors ${isDark ? "bg-white" : "bg-blue-50"}`}
+      className={`w-32 h-32 mb-2 flex items-center justify-center rounded-full p-4 transition-colors`}
     >
       <img
-        src={`/images/${icon}`}
+        src={icon}
         alt={title}
         className="w-full h-full object-contain"
       />
     </div>
     <h3
-      className={`font-bold text-lg mb-2 transition-colors ${isDark ? "text-white" : "text-[#1e3a8a]"}`}
+      className={`font-bold text-2xl mb-2 transition-colors ${isDark ? "text-white" : "text-[#1e3a8a]"}`}
     >
       {title}
     </h3>
     <p
-      className={`text-[11px] leading-relaxed px-2 transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}
+      className={`text-xm leading-relaxed px-2 transition-colors ${isDark ? "text-slate-400" : "text-slate-500"}`}
     >
       {desc}
     </p>
@@ -87,12 +92,12 @@ const FeatureCard = ({ icon, title, desc, delay, isDark }) => (
 // Sub-Komponen FAQ
 const FAQItem = ({ question, answer, isOpen, onClick, isDark }) => (
   <div
-    className={`w-full max-w-3xl border rounded-xl mb-3 shadow-sm overflow-hidden transition-all duration-500 ${
+    className={`w-full max-w-5xl border rounded-2xl mb-3 shadow-sm overflow-hidden transition-all duration-500 ${
       isDark ? "bg-[#0a1120] border-slate-800" : "bg-white border-slate-100"
     }`}
   >
     <div
-      className={`p-4 flex justify-between items-center cursor-pointer transition-colors ${
+      className={`p-7 flex justify-between items-center cursor-pointer transition-colors ${
         isOpen
           ? isDark
             ? "bg-[#111a2e]"
@@ -104,7 +109,7 @@ const FAQItem = ({ question, answer, isOpen, onClick, isDark }) => (
       onClick={onClick}
     >
       <span
-        className={`font-semibold text-[13px] transition-colors ${isDark ? "text-slate-200" : "text-slate-700"}`}
+        className={`font-semibold text-xm transition-colors ${isDark ? "text-slate-200" : "text-slate-500"}`}
       >
         {question}
       </span>
@@ -124,7 +129,7 @@ const FAQItem = ({ question, answer, isOpen, onClick, isDark }) => (
           className="overflow-hidden"
         >
           <div
-            className={`p-4 text-[12px] border-t transition-colors ${
+            className={`p-6 text-xm border-t transition-colors ${
               isDark
                 ? "bg-[#0d172b] text-slate-400 border-slate-800"
                 : "bg-[#f0f7ff] text-slate-500 border-slate-200"
@@ -146,21 +151,22 @@ const HealthMate = () => {
   const faqData = [
     {
       q: "Apa itu sistem konsultasi kesehatan berbasis AI ini?",
-      a: "Sistem ini adalah platform kesehatan digital berbasis web yang dirancang untuk membantu pengguna melakukan konsultasi kesehatan awal melalui AI chatbot dan fitur skrining gejala.",
+      a: "Sistem ini merupakan platform kesehatan digital berbasis web yang dirancang untuk membantu pengguna melakukan konsultasi kesehatan awal secara mandiri. Dengan dukungan AI chatbot dan fitur skrining gejala, sistem dapat memberikan informasi kesehatan, analisis awal kondisi pengguna, serta rekomendasi tindakan awal sebelum berkonsultasi langsung dengan tenaga medis profesional.",
     },
     {
       q: "Bagaimana cara kerja skrining gejala?",
-      a: "Sistem menganalisis input gejala yang Anda masukkan dan membandingkannya dengan database medis untuk memberikan kemungkinan diagnosis awal.",
+      a: "Skrining gejala dilakukan dengan mengajukan serangkaian pertanyaan terkait kondisi kesehatan yang dirasakan pengguna. Jawaban yang diberikan akan dianalisis oleh sistem menggunakan aturan dan bobot tertentu, kemudian diolah untuk menentukan tingkat risiko serta memberikan hasil skrining dan rekomendasi tindakan kesehatan awal yang sesuai.",
     },
     {
       q: "Apakah data kesehatan saya aman?",
-      a: "Ya, kami menggunakan enkripsi end-to-end untuk memastikan semua data medis pribadi Anda tetap terjaga kerahasiaannya.",
+      a: "Keamanan data pengguna menjadi prioritas utama sistem ini. Seluruh data kesehatan yang dimasukkan akan disimpan secara aman dan dilindungi menggunakan mekanisme keamanan seperti enkripsi serta pembatasan akses. Data hanya digunakan untuk keperluan analisis sistem dan tidak dibagikan kepada pihak lain tanpa izin pengguna.",
     },
     {
       q: "Kapan saya harus berkonsultasi ke tenaga medis profesional?",
-      a: "Segera setelah sistem memberikan indikasi gejala serius atau jika Anda merasa kondisi Anda memburuk secara signifikan.",
+      a: "Pengguna disarankan untuk segera berkonsultasi dengan tenaga medis profesional apabila hasil skrining menunjukkan tingkat risiko sedang hingga tinggi, atau jika sistem memberikan rekomendasi untuk pemeriksaan lanjutan. Selain itu, jika gejala yang dirasakan tidak membaik atau semakin memburuk, konsultasi langsung dengan dokter sangat dianjurkan.",
     },
   ];
+
 
   return (
     <div
@@ -190,7 +196,7 @@ const HealthMate = () => {
       />
 
       <Navbar isDark={isDarkMode} />
-
+      {/* <SplashCursor /> */}
       {/* Hero Section */}
       <section className="relative px-10 md:px-35 py-12 flex flex-col md:flex-row items-center justify-between">
         <motion.div
@@ -236,39 +242,39 @@ const HealthMate = () => {
       </section>
 
       {/* Why Trust Us Section */}
-      <section className="py-24 px-6 text-center mb-20 relative">
+      <section className="py-10 px-6 text-center mb-20 relative">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          className={`text-4xl font-bold mb-25 leading-tight transition-colors ${isDarkMode ? "text-white" : "text-[#1e3a8a]"}`}
+          className={`text-5xl font-bold mb-28 leading-tight transition-colors ${isDarkMode ? "text-white" : "text-[#1e3a8a]"}`}
         >
           Mengapa Anda harus mempercayai <br /> kami? Kenali kami lebih lanjut
         </motion.h2>
-        <div className="flex flex-wrap justify-center gap-12 max-w-8xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-20 max-w-9xl mx-auto">
           <FeatureCard
             isDark={isDarkMode}
-            icon="icon-rekomendasi.png"
+            icon={rekom}
             title="Rekomendasi Awal"
             desc="Konsultasi kesehatan awal berbasis AI melalui percakapan interaktif."
             delay={0.1}
           />
           <FeatureCard
             isDark={isDarkMode}
-            icon="icon-bot.png"
+            icon={chat}
             title="AI Chatbot"
             desc="Pengumpulan dan analisis gejala kesehatan pengguna secara sistematis."
             delay={0.2}
           />
           <FeatureCard
             isDark={isDarkMode}
-            icon="icon-skrining.png"
+            icon={skrining}
             title="Skrining Gejala"
             desc="Saran tindakan kesehatan awal berdasarkan hasil analisis sistem."
             delay={0.3}
           />
           <FeatureCard
             isDark={isDarkMode}
-            icon="icon-keamanan.png"
+            icon={keamanan}
             title="Keamanan Data"
             desc="Perlindungan data pengguna dengan sistem keamanan terintegrasi."
             delay={0.4}
@@ -277,11 +283,11 @@ const HealthMate = () => {
       </section>
 
       {/* About Us Section */}
-      <section className="relative px-10 md:px-100 py-12 flex gap-40 flex-col md:flex-row items-center justify-between mb-20">
+      <section className="relative px-10 md:px-70 py-12 flex gap-40 ml-20 flex-col md:flex-row items-center justify-between mb-20">
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
-          className="md:w-[50%] relative"
+          className="md:w-[60%] relative"
         >
           <div
             className={`absolute -inset-4 rounded-full blur-2xl -z-10 transition-colors ${isDarkMode ? "bg-blue-900/20" : "bg-blue-100/50"}`}
@@ -289,7 +295,7 @@ const HealthMate = () => {
           <img
             src={about}
             alt="Doctor About"
-            className="w-full relative z-0 drop-shadow-xl rounded-3xl"
+            className="w-full relative z-0 drop-shadow-xl rounded-xs"
           />
         </motion.div>
         <motion.div
@@ -298,12 +304,12 @@ const HealthMate = () => {
           className="md:w-1/2"
         >
           <h2
-            className={`text-5xl font-bold mb-8 -mt-10 transition-colors ${isDarkMode ? "text-white" : "text-slate-800"}`}
+            className={`text-6xl font-bold mb-8 -mt-10 transition-colors ${isDarkMode ? "text-white" : "text-slate-800"}`}
           >
             Tentang <span className="text-blue-500">Kami</span>
           </h2>
           <p
-            className={`mb-12 text-lg leading-relaxed max-w-md transition-colors ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
+            className={`mb-65 text-lg leading-relaxed max-w-md transition-colors ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
           >
             Platform kesehatan digital berbasis AI yang membantu konsultasi
             kesehatan awal melalui fitur chatbot, skrining gejala, dan
