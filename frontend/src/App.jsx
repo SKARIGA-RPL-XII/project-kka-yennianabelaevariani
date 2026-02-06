@@ -5,6 +5,7 @@ import Login from "./auth/login";
 import Register from "./auth/register";
 import Dashboard from './dashboardu';
 import Chatbot from "./chatbot";
+import Riwayat from "./riwayat";
 import "./index.css";
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Route path="/regis" element={<Register />} />
         <Route path="/d" element={<Dashboard />} />
         <Route path="/c" element={<Chatbot />} />
+        <Route path="/r" element={<Riwayat />} />
       </Routes>
     </BrowserRouter>
   );
