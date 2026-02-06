@@ -1,28 +1,79 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const LoginScreen = () => {
+  // 1. State untuk menampung input
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+
+  // 2. Fungsi Handle Login
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      // Pastikan URL sesuai dengan php artisan serve (biasanya port 8000)
+      const response = await axios.post("http://localhost:8000/api/login", {
+        email: email,
+        password: password,
+      });
+
+      if (response.data.user) {
+        // Simpan token atau data user jika perlu (localStorage)
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+
+        // Redirect ke Dashboard
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      // Ambil pesan error dari backend jika ada
+      setError(
+        err.response?.data?.message ||
+          "Login gagal. Periksa kembali email dan password Anda.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#D1E3F4] flex items-center justify-center p-4 md:p-8 font-sans">
       <div className="max-w-6xl w-full flex flex-col md:flex-row items-center justify-center gap-12 lg:gap-24">
-        {/* SISI KIRI: Card Login (Ukuran disamakan dengan Register) */}
+        {/* SISI KIRI: Card Login */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-white/90 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-white/50 w-full max-w-[500px]" // Lebar max-w-[500px] agar sama dengan Register
+          className="bg-white/90 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-white/50 w-full max-w-[500px]"
         >
           <h1 className="text-4xl font-bold mb-10 text-slate-900">
             Sign <span className="text-[#3B82F6]">In</span>
           </h1>
 
-          <form className="space-y-6">
+          {/* Pesan Error */}
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm italic">
+              {error}
+            </div>
+          )}
+
+          <form className="space-y-6" onSubmit={handleLogin}>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-slate-700 ml-1">
                 Email
               </label>
               <input
                 type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="yennianabela016@gmail.com"
                 className="input-style"
               />
@@ -34,29 +85,37 @@ const LoginScreen = () => {
               </label>
               <input
                 type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder=".........."
                 className="input-style"
               />
             </div>
 
             <motion.button
+              type="submit"
+              disabled={loading}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full bg-[#5A94C9] hover:bg-[#4A83B8] text-white font-bold py-4 rounded-2xl transition-all shadow-lg mt-6 text-lg"
+              className={`w-full ${loading ? "bg-gray-400" : "bg-[#5A94C9] hover:bg-[#4A83B8]"} text-white font-bold py-4 rounded-2xl transition-all shadow-lg mt-6 text-lg`}
             >
-              Log In
+              {loading ? "Processing..." : "Log In"}
             </motion.button>
           </form>
 
           <p className="mt-8 text-center text-sm text-slate-600">
             Belum punya akun?{" "}
-            <a href="/regis " className="text-[#3B82F6] font-bold hover:underline">
+            <a
+              href="/regis"
+              className="text-[#3B82F6] font-bold hover:underline"
+            >
               Register
             </a>
           </p>
         </motion.div>
 
-        {/* SISI KANAN: Teks Deskripsi (Tetap Rata Tengah secara vertikal/horizontal) */}
+        {/* SISI KANAN: Teks Deskripsi */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -75,8 +134,7 @@ const LoginScreen = () => {
         </motion.div>
       </div>
 
-      {/* Internal CSS untuk konsistensi input style */}
-      <style jsx>{`
+      <style jsx="true">{`
         .input-style {
           width: 100%;
           padding: 0.85rem 1.25rem;
