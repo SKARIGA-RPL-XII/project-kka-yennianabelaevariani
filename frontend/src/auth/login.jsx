@@ -30,7 +30,7 @@ const LoginScreen = () => {
         localStorage.setItem("user", JSON.stringify(response.data.user));
 
         // Redirect ke Dashboard
-        navigate("/dashboard");
+        navigate("/d");
       }
     } catch (err) {
       // Ambil pesan error dari backend jika ada
