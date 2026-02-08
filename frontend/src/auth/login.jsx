@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Mail, Lock, ArrowRight, Activity } from "lucide-react"; // Tambahkan icon biar modern
 
 const LoginScreen = () => {
-  // 1. State untuk menampung input
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,28 +12,25 @@ const LoginScreen = () => {
 
   const navigate = useNavigate();
 
-  // 2. Fungsi Handle Login
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      // Pastikan URL sesuai dengan php artisan serve (biasanya port 8000)
       const response = await axios.post("http://localhost:8000/api/login", {
         email: email,
         password: password,
       });
 
       if (response.data.user) {
-        // Simpan token atau data user jika perlu (localStorage)
         localStorage.setItem("user", JSON.stringify(response.data.user));
-
-        // Redirect ke Dashboard
-        navigate("/d");
+        // Cek role, jika admin arahkan ke /admin, jika user ke /d
+        const targetPath =
+          response.data.user.role === "admin" ? "/admin" : "/d";
+        navigate(targetPath);
       }
     } catch (err) {
-      // Ambil pesan error dari backend jika ada
       setError(
         err.response?.data?.message ||
           "Login gagal. Periksa kembali email dan password Anda.",
@@ -44,53 +41,115 @@ const LoginScreen = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#D1E3F4] flex items-center justify-center p-4 md:p-8 font-sans">
-      <div className="max-w-6xl w-full flex flex-col md:flex-row items-center justify-center gap-12 lg:gap-24">
-        {/* SISI KIRI: Card Login */}
+    <div className="min-h-screen bg-[#F0F7FF] flex items-center justify-center p-6 font-sans relative overflow-hidden">
+      {/* Dekorasi Background Bulatan Halus (Sama seperti style skrining) */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-200/30 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-300/20 rounded-full blur-[120px]" />
+
+      <div className="max-w-6xl w-full flex flex-col md:flex-row items-center justify-between gap-12 relative z-10">
+        {/* SISI KIRI: Branding & Deskripsi */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="bg-white/90 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] shadow-xl border border-white/50 w-full max-w-[500px]"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.8 }}
+          className="max-w-[500px] space-y-8 text-left"
         >
-          <h1 className="text-4xl font-bold mb-10 text-slate-900">
-            Sign <span className="text-[#3B82F6]">In</span>
-          </h1>
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-200">
+              <Activity className="text-white" size={32} />
+            </div>
+            <h2 className="text-4xl font-black text-[#1e40af] tracking-tight">
+              Health<span className="text-blue-500">Mate</span>
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-[1.1]">
+              Satu Langkah Menuju{" "}
+              <span className="text-blue-600">Hidup Sehat.</span>
+            </h1>
+            <p className="text-[#60a5fa] text-lg font-medium leading-relaxed">
+              Konsultasi kesehatan berbasis AI, skrining gejala akurat, dan
+              rekomendasi medis terstruktur dalam satu platform digital.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* SISI KANAN: Card Login */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          className="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white p-10 md:p-12 w-full max-w-[480px] relative overflow-hidden"
+        >
+          <div className="mb-10 text-center">
+            <h3 className="text-3xl font-black text-slate-900 mb-2">
+              Selamat Datang
+            </h3>
+            <p className="text-slate-400 font-medium italic">
+              Silakan masuk ke akun Anda
+            </p>
+          </div>
 
           {/* Pesan Error */}
           {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm italic">
-              {error}
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-red-50 border border-red-100 text-red-500 rounded-2xl text-xs font-bold flex items-center gap-2"
+            >
+              <span>⚠️</span> {error}
+            </motion.div>
           )}
 
-          <form className="space-y-6" onSubmit={handleLogin}>
+          <form className="space-y-5" onSubmit={handleLogin}>
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 ml-1">
-                Email
+              <label className="text-xs font-bold text-slate-500 ml-2 uppercase tracking-widest">
+                Email Address
               </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="yennianabela016@gmail.com"
-                className="input-style"
-              />
+              <div className="relative group">
+                <Mail
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors"
+                  size={20}
+                />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-4 pl-12 pr-6 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all text-slate-700 font-medium"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700 ml-1">
+              <label className="text-xs font-bold text-slate-500 ml-2 uppercase tracking-widest">
                 Password
               </label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder=".........."
-                className="input-style"
-              />
+              <div className="relative group">
+                <Lock
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors"
+                  size={20}
+                />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-4 pl-12 pr-6 outline-none focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all text-slate-700 font-medium"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <a
+                href="#"
+                className="text-xs font-bold text-blue-500 hover:text-blue-700 transition"
+              >
+                Lupa Password?
+              </a>
             </div>
 
             <motion.button
@@ -98,59 +157,28 @@ const LoginScreen = () => {
               disabled={loading}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className={`w-full ${loading ? "bg-gray-400" : "bg-[#5A94C9] hover:bg-[#4A83B8]"} text-white font-bold py-4 rounded-2xl transition-all shadow-lg mt-6 text-lg`}
+              className={`w-full flex items-center justify-center gap-3 ${
+                loading
+                  ? "bg-slate-300 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              } text-white font-black py-4 rounded-[1.25rem] transition-all shadow-xl shadow-blue-100 mt-4 text-lg`}
             >
-              {loading ? "Processing..." : "Log In"}
+              {loading ? "Menghubungkan..." : "Masuk Sekarang"}
+              {!loading && <ArrowRight size={20} />}
             </motion.button>
           </form>
 
-          <p className="mt-8 text-center text-sm text-slate-600">
-            Belum punya akun?{" "}
+          <p className="mt-10 text-center text-sm font-medium text-slate-400">
+            Belum punya akun HealthMate?{" "}
             <a
               href="/regis"
-              className="text-[#3B82F6] font-bold hover:underline"
+              className="text-blue-600 font-black hover:underline underline-offset-4"
             >
-              Register
+              Daftar Gratis
             </a>
           </p>
         </motion.div>
-
-        {/* SISI KANAN: Teks Deskripsi */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="max-w-[450px] text-center space-y-6"
-        >
-          <h2 className="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight">
-            Health<span className="text-[#003B95]">Mate</span>
-          </h2>
-          <p className="text-slate-800 leading-relaxed text-base md:text-lg font-medium opacity-90">
-            HealthMate adalah platform kesehatan digital berbasis web yang
-            membantu pengguna melakukan konsultasi kesehatan awal melalui AI
-            chatbot, skrining gejala, dan rekomendasi tindakan kesehatan secara
-            terstruktur dan mudah digunakan.
-          </p>
-        </motion.div>
       </div>
-
-      <style jsx="true">{`
-        .input-style {
-          width: 100%;
-          padding: 0.85rem 1.25rem;
-          background-color: #e8f1f9;
-          border: 1.5px solid #a5c7e9;
-          border-radius: 1rem;
-          outline: none;
-          transition: all 0.2s;
-          color: #475569;
-        }
-        .input-style:focus {
-          border-color: #3b82f6;
-          background-color: #fff;
-          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-        }
-      `}</style>
     </div>
   );
 };

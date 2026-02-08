@@ -1,4 +1,5 @@
 import React from "react";
+import { Link, useLocation } from "react-router-dom"; // Tambahkan import ini gess
 import {
   LayoutDashboard,
   Users,
@@ -9,20 +10,35 @@ import {
 } from "lucide-react";
 
 const Sidebar = () => {
+  const location = useLocation(); // Untuk ngecek kita lagi di halaman mana
+
   const menuItems = [
-    { icon: <LayoutDashboard size={20} />, label: "Dashboard", active: true },
-    { icon: <Users size={20} />, label: "Manajemen Pengguna", active: false },
+    { icon: <LayoutDashboard size={20} />, label: "Dashboard", path: "/dasboard" },
+    {
+      icon: <Users size={20} />,
+      label: "Manajemen Pengguna",
+      path: "/user",
+    },
     {
       icon: <ClipboardList size={20} />,
-      label: "Manajemen Skrining",
-      active: false,
+      label: "Manajemen Pertanyaan",
+      path: "/pertanyaanskrining",
     },
     {
-      icon: <FileText size={20} />,
-      label: "Pengelolaan Artikel",
-      active: false,
+      icon: <ClipboardList size={20} />,
+      label: "Manajemen Kategori",
+      path: "/kategori",
     },
-    { icon: <Settings size={20} />, label: "Pengaturan Sistem", active: false },
+    // {
+    //   icon: <FileText size={20} />,
+    //   label: "Pengelolaan Artikel",
+    //   path: "/admin/artikel",
+    // },
+    // {
+    //   icon: <Settings size={20} />,
+    //   label: "Pengaturan Sistem",
+    //   path: "/admin/settings",
+    // },
   ];
 
   return (
@@ -39,26 +55,35 @@ const Sidebar = () => {
 
       {/* Navigation Links */}
       <nav className="flex-1 space-y-2">
-        {menuItems.map((item, index) => (
-          <button
-            key={index}
-            className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold transition-all duration-200 ${
-              item.active
-                ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md shadow-blue-100"
-                : "text-blue-400 hover:bg-blue-50 hover:text-blue-600"
-            }`}
-          >
-            {item.icon}
-            <span className="text-sm">{item.label}</span>
-          </button>
-        ))}
+        {menuItems.map((item, index) => {
+          // Cek apakah path item sama dengan URL sekarang gess
+          const isActive = location.pathname === item.path;
+
+          return (
+            <Link
+              key={index}
+              to={item.path}
+              className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold transition-all duration-200 ${
+                isActive
+                  ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-md shadow-blue-100"
+                  : "text-blue-400 hover:bg-blue-50 hover:text-blue-600"
+              }`}
+            >
+              {item.icon}
+              <span className="text-sm">{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       {/* Logout Button */}
-      <button className="flex items-center gap-4 px-4 py-3.5 mt-auto text-red-400 font-semibold hover:bg-red-50 rounded-2xl transition-all">
+      <Link
+        to="/login"
+        className="flex items-center gap-4 px-4 py-3.5 mt-auto text-red-400 font-semibold hover:bg-red-50 rounded-2xl transition-all"
+      >
         <LogOut size={20} />
         <span className="text-sm">Keluar</span>
-      </button>
+      </Link>
     </aside>
   );
 };
