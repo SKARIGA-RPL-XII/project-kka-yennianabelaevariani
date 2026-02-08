@@ -7,6 +7,7 @@ import Dashboard from './dashboardu';
 import Chatbot from "./chatbot";
 import Riwayat from "./riwayat";
 import Sreening from "./ScreeningPage";
+import Sreeningawal from "./skriningawal";
 import "./index.css";
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Route path="/c" element={<Chatbot />} />
         <Route path="/r" element={<Riwayat />} />
         <Route path="/skrining" element={<Sreening />} />
+        <Route path="/skriningawal" element={<Sreeningawal />} />
       </Routes>
     </BrowserRouter>
   );
