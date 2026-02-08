@@ -4,6 +4,7 @@ import HealthMate from'./landingpage'
 import Login from "./auth/login";
 import Register from "./auth/register";
 import Dashboard from './dashboardu';
+import DashboardA from "./dashboarda";
 import Chatbot from "./chatbot";
 import Riwayat from "./riwayat";
 import Sreening from "./ScreeningPage";
@@ -23,6 +24,7 @@ function App() {
         <Route path="/r" element={<Riwayat />} />
         <Route path="/skrining" element={<Sreening />} />
         <Route path="/skriningawal" element={<Sreeningawal />} />
+        <Route path="/dasboard" element={<DashboardA />} />
       </Routes>
     </BrowserRouter>
   );
