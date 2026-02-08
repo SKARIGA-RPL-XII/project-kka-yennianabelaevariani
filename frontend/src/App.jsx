@@ -9,6 +9,9 @@ import Chatbot from "./chatbot";
 import Riwayat from "./riwayat";
 import Sreening from "./ScreeningPage";
 import Sreeningawal from "./skriningawal";
+import User from "./ManajemenUser";
+import Pertanyaanskrining from "./pertanyaanskrining";
+import Kategory from "./kategory";
 import "./index.css";
 
 function App() {
@@ -25,6 +28,9 @@ function App() {
         <Route path="/skrining" element={<Sreening />} />
         <Route path="/skriningawal" element={<Sreeningawal />} />
         <Route path="/dasboard" element={<DashboardA />} />
+        <Route path="/user" element={<User />} />
+        <Route path="/Pertanyaanskrining" element={<Pertanyaanskrining />} />
+        <Route path="/kategori" element={<Kategory />} />
       </Routes>
     </BrowserRouter>
   );
