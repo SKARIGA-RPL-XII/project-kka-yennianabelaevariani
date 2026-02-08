@@ -13,9 +13,7 @@ return new class extends Migration
     {
         Schema::create('pertanyaan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('kategori_id')
-                  ->constrained('kategori')
-                  ->cascadeOnDelete();
+            $table->foreignId('kategori_id')->constrained('kategori');
             $table->text('teks_pertanyaan');
             $table->integer('bobot');
             $table->boolean('is_darurat')->default(false);
