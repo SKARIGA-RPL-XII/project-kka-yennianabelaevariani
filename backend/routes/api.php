@@ -1,11 +1,17 @@
 <?php
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\SkriningController;
 use App\Http\Controllers\PertanyaanController;
+
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
+Route::put('/users/{id}', [UserController::class, 'update']);
+Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
 // Route::get('/chat', [ChatbotController::class, 'chat']);
 Route::post('/chat', [ChatbotController::class, 'chat']);

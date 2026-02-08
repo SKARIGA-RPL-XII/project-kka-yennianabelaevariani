@@ -6,10 +6,8 @@ import chat from "./assets/icon/chatbot.png";
 import keamanan from "./assets/icon/Keamanan.png";
 import skrining from "./assets/icon/Skrining.png";
 import rekom from "./assets/icon/rekomendasi.png";
-// import SplashCursor from "./component/SplashCursor";
 
-
-// Sub-Komponen Navbar (Menerima props isDarkMode)
+// Sub-Komponen Navbar
 const Navbar = ({ isDark }) => (
   <nav
     className={`flex justify-between items-center px-6 md:px-20 py-6 sticky top-0 z-50 transition-colors duration-500 border-b ${
@@ -24,17 +22,23 @@ const Navbar = ({ isDark }) => (
       HealthMate
     </div>
     <div className="hidden md:flex items-center gap-8">
-      {["Home", "Fitur", "Tentang Sistem", "FAQ"].map((link) => (
+      {/* UPDATE: ID disesuaikan agar bisa diklik */}
+      {[
+        { name: "Home", id: "#home" },
+        { name: "Fitur", id: "#fitur" },
+        { name: "Tentang Sistem", id: "#tentang" },
+        { name: "FAQ", id: "#faq" },
+      ].map((link) => (
         <a
-          key={link}
-          href="#"
+          key={link.name}
+          href={link.id}
           className={`text-xl font-medium transition-colors ${
             isDark
               ? "text-slate-300 hover:text-blue-400"
               : "text-slate-600 hover:text-blue-600"
           }`}
         >
-          {link}
+          {link.name}
         </a>
       ))}
       <button className="bg-[#4a90e2] text-white px-8 py-3 rounded-lg hover:bg-blue-500 transition-all hover:shadow-lg ml-4">
@@ -70,11 +74,7 @@ const FeatureCard = ({ icon, title, desc, delay, isDark }) => (
     <div
       className={`w-32 h-32 mb-2 flex items-center justify-center rounded-full p-4 transition-colors`}
     >
-      <img
-        src={icon}
-        alt={title}
-        className="w-full h-full object-contain"
-      />
+      <img src={icon} alt={title} className="w-full h-full object-contain" />
     </div>
     <h3
       className={`font-bold text-2xl mb-2 transition-colors ${isDark ? "text-white" : "text-[#1e3a8a]"}`}
@@ -145,42 +145,40 @@ const FAQItem = ({ question, answer, isOpen, onClick, isDark }) => (
 
 // Komponen Utama
 const HealthMate = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false); // Default Terang
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
 
   const faqData = [
     {
       q: "Apa itu sistem konsultasi kesehatan berbasis AI ini?",
-      a: "Sistem ini merupakan platform kesehatan digital berbasis web yang dirancang untuk membantu pengguna melakukan konsultasi kesehatan awal secara mandiri. Dengan dukungan AI chatbot dan fitur skrining gejala, sistem dapat memberikan informasi kesehatan, analisis awal kondisi pengguna, serta rekomendasi tindakan awal sebelum berkonsultasi langsung dengan tenaga medis profesional.",
+      a: "Sistem ini merupakan platform kesehatan digital berbasis web yang dirancang untuk membantu pengguna melakukan konsultasi kesehatan awal secara mandiri.",
     },
     {
       q: "Bagaimana cara kerja skrining gejala?",
-      a: "Skrining gejala dilakukan dengan mengajukan serangkaian pertanyaan terkait kondisi kesehatan yang dirasakan pengguna. Jawaban yang diberikan akan dianalisis oleh sistem menggunakan aturan dan bobot tertentu, kemudian diolah untuk menentukan tingkat risiko serta memberikan hasil skrining dan rekomendasi tindakan kesehatan awal yang sesuai.",
+      a: "Skrining gejala dilakukan dengan mengajukan serangkaian pertanyaan terkait kondisi kesehatan yang dirasakan pengguna.",
     },
     {
       q: "Apakah data kesehatan saya aman?",
-      a: "Keamanan data pengguna menjadi prioritas utama sistem ini. Seluruh data kesehatan yang dimasukkan akan disimpan secara aman dan dilindungi menggunakan mekanisme keamanan seperti enkripsi serta pembatasan akses. Data hanya digunakan untuk keperluan analisis sistem dan tidak dibagikan kepada pihak lain tanpa izin pengguna.",
+      a: "Keamanan data pengguna menjadi prioritas utama sistem ini. Seluruh data kesehatan yang dimasukkan akan disimpan secara aman.",
     },
     {
       q: "Kapan saya harus berkonsultasi ke tenaga medis profesional?",
-      a: "Pengguna disarankan untuk segera berkonsultasi dengan tenaga medis profesional apabila hasil skrining menunjukkan tingkat risiko sedang hingga tinggi, atau jika sistem memberikan rekomendasi untuk pemeriksaan lanjutan. Selain itu, jika gejala yang dirasakan tidak membaik atau semakin memburuk, konsultasi langsung dengan dokter sangat dianjurkan.",
+      a: "Pengguna disarankan untuk segera berkonsultasi dengan tenaga medis profesional apabila hasil skrining menunjukkan tingkat risiko sedang hingga tinggi.",
     },
   ];
-
 
   return (
     <div
       className={`min-h-screen font-sans antialiased overflow-x-hidden relative transition-colors duration-500 ${isDarkMode ? "bg-[#020817]" : "bg-[#f8fbff]"}`}
     >
-      {/* Tombol Switch Gelap/Terang di Kanan Bawah */}
       <button
         onClick={() => setIsDarkMode(!isDarkMode)}
         className="fixed bottom-8 right-8 z-[100] p-4 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 bg-blue-600 text-white"
       >
         {isDarkMode ? (
-          <span className="text-xl">☀️</span> // Ikon Matahari untuk balik ke Terang
+          <span className="text-xl">☀️</span>
         ) : (
-          <span className="text-xl">🌙</span> // Ikon Bulan untuk ke Gelap
+          <span className="text-xl">🌙</span>
         )}
       </button>
 
@@ -188,17 +186,14 @@ const HealthMate = () => {
       <div
         className={`absolute top-0 left-0 w-full h-[1000px] -z-10 transition-opacity duration-500 ${isDarkMode ? "opacity-20 bg-gradient-to-b from-blue-900 to-transparent" : "opacity-100 bg-gradient-to-b from-blue-50/50 to-transparent"}`}
       />
-      <div
-        className={`absolute top-[20%] -right-20 w-96 h-96 rounded-full blur-3xl -z-10 transition-colors duration-500 ${isDarkMode ? "bg-blue-600/10" : "bg-blue-100/30"}`}
-      />
-      <div
-        className={`absolute top-[50%] -left-20 w-96 h-96 rounded-full blur-3xl -z-10 transition-colors duration-500 ${isDarkMode ? "bg-indigo-600/10" : "bg-indigo-100/20"}`}
-      />
 
       <Navbar isDark={isDarkMode} />
-      {/* <SplashCursor /> */}
+
       {/* Hero Section */}
-      <section className="relative px-10 md:px-35 py-12 flex flex-col md:flex-row items-center justify-between">
+      <section
+        id="home"
+        className="relative px-10 md:px-35 py-12 flex flex-col md:flex-row items-center justify-between"
+      >
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -209,9 +204,7 @@ const HealthMate = () => {
             className={`text-6xl font-bold leading-[1.2] mb-8 transition-colors ${isDarkMode ? "text-white" : "text-slate-800"}`}
           >
             Solusi <span className="text-blue-500">Kesehatan</span> <br />
-            <span className="text-blue-500">Digital</span> Untuk Konsultasi{" "}
-            <br />
-            Awal
+            <span className="text-blue-500">Digital</span> Untuk Konsultasi Awal
           </h1>
           <p
             className={`mb-15 max-w-xl text-xl leading-relaxed transition-colors ${isDarkMode ? "text-slate-400" : "text-slate-500"}`}
@@ -242,7 +235,7 @@ const HealthMate = () => {
       </section>
 
       {/* Why Trust Us Section */}
-      <section className="py-10 px-6 text-center mb-20 relative">
+      <section id="fitur" className="py-10 px-6 text-center mb-20 relative">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -283,7 +276,10 @@ const HealthMate = () => {
       </section>
 
       {/* About Us Section */}
-      <section className="relative px-10 md:px-70 py-12 flex gap-40 ml-20 flex-col md:flex-row items-center justify-between mb-20">
+      <section
+        id="tentang"
+        className="relative px-10 md:px-70 py-12 flex gap-40 ml-20 flex-col md:flex-row items-center justify-between mb-20"
+      >
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -327,6 +323,7 @@ const HealthMate = () => {
 
       {/* FAQ Section */}
       <section
+        id="faq"
         className={`py-24 px-6 flex flex-col items-center transition-colors duration-500 ${isDarkMode ? "bg-[#050b1a]/50" : "bg-white/30 backdrop-blur-sm"}`}
       >
         <motion.h2
@@ -353,13 +350,10 @@ const HealthMate = () => {
         </div>
       </section>
 
+
       {/* Footer */}
       <footer
-        className={`border-t px-6 md:px-20 py-10 flex flex-col md:flex-row justify-between items-center gap-4 transition-all duration-500 ${
-          isDarkMode
-            ? "bg-[#020817] border-slate-800"
-            : "bg-slate-50 border-slate-100"
-        }`}
+        className={`border-t px-6 md:px-20 py-10 flex flex-col md:flex-row justify-between items-center gap-4 transition-all duration-500 ${isDarkMode ? "bg-[#020817] border-slate-800" : "bg-slate-50 border-slate-100"}`}
       >
         <div
           className={`font-bold text-2xl transition-colors ${isDarkMode ? "text-white" : "text-slate-800"}`}
@@ -367,10 +361,10 @@ const HealthMate = () => {
           HealthMate
         </div>
         <div className="flex gap-8 text-sm font-medium">
-          {["Home", "Fitur", "Tentang Sistem", "FAQ"].map((link) => (
+          {["Home", "Fitur", "Tentang Sistem", "FAQ", "Kontak"].map((link) => (
             <a
               key={link}
-              href="#"
+              href={`#${link.toLowerCase().replace(" ", "")}`}
               className={`transition-colors ${isDarkMode ? "text-slate-400 hover:text-blue-400" : "text-slate-600 hover:text-blue-500"}`}
             >
               {link}
