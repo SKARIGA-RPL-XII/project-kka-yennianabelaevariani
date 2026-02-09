@@ -44,23 +44,23 @@ const AdminDashboard = () => {
           </div>
 
           <div className="flex items-center gap-6">
-            <button className="relative p-2 text-blue-400 bg-white rounded-xl shadow-sm border border-blue-50">
-              <Bell size={20} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
+            {/* <button className="relative p-2 text-blue-400 bg-white rounded-xl shadow-sm border border-blue-50"> */}
+              {/* <Bell size={20} /> */}
+              {/* <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span> */}
+            {/* </button> */}
             <div className="flex items-center gap-3 pl-6 border-l border-blue-100">
-              <div className="text-right">
+              {/* <div className="text-right">
                 <p className="text-sm font-bold text-blue-900">Administrator</p>
                 <p className="text-[10px] font-semibold text-blue-400 uppercase tracking-wider">
                   Super Admin
                 </p>
-              </div>
-              <img
+              </div> */}
+              {/* <img
                 src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
                 className="w-10 h-10 rounded-xl bg-blue-100 border border-blue-50"
                 alt="Profile"
-              />
-              <ChevronDown size={16} className="text-blue-300" />
+              /> */}
+              
             </div>
           </div>
         </header>
