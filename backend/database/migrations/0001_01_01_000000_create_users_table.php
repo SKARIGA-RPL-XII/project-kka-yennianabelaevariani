@@ -12,11 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
+            // Menggunakan id_user sebagai primary key sesuai gambar
+            $table->id('id_user'); 
+            $table->string('nama'); // Di gambar tertulis 'nama'
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            
+            // Kolom tambahan sesuai skema gambar
+            $table->enum('jenis_kelamin', ['Laki-laki', 'Perempuan'])->nullable();
+            $table->date('tanggal_lahir')->nullable();
+            $table->string('telepon')->nullable();
+            $table->string('role')->default('user'); // Misal: admin, user, dll.
+            
+            $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });
@@ -29,6 +37,7 @@ return new class extends Migration
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
+            // Penting: foreignId harus merujuk ke id_user karena PK users sudah berubah
             $table->foreignId('user_id')->nullable()->index();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();

@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('skrining', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->id(); 
+            
+            $table->foreignId('user_id')
+                  ->references('id_user')
+                  ->on('users')
+                  ->onDelete('cascade');
+                  
             $table->integer('total_skor')->default(0);
             $table->enum('status', ['rendah', 'sedang', 'tinggi']);
             $table->timestamps();

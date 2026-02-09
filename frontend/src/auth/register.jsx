@@ -10,16 +10,17 @@ import {
   Calendar,
   ArrowRight,
   Activity,
+  Users, // Icon tambahan untuk Jenis Kelamin
 } from "lucide-react";
 
 const SignUpScreen = () => {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
+    nama: "", // Sesuaikan dengan database (bukan name)
     birthDate: "",
     phone: "",
     email: "",
     password: "",
+    jenis_kelamin: "", // Kolom baru sesuai gambar
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,14 +39,17 @@ const SignUpScreen = () => {
     setLoading(true);
     setError("");
 
-    const fullName = `${formData.firstName} ${formData.lastName}`;
-
     try {
+      // Sesuaikan key JSON dengan field di database Laravel kamu
       const response = await axios.post("http://localhost:8000/api/register", {
-        name: fullName,
+        nama: formData.nama,
         email: formData.email,
         password: formData.password,
         password_confirmation: formData.password,
+        telepon: formData.phone,
+        tanggal_lahir: formData.birthDate,
+        jenis_kelamin: formData.jenis_kelamin,
+        role: "user", // Default role
       });
 
       if (response.status === 201 || response.status === 200) {
@@ -54,7 +58,8 @@ const SignUpScreen = () => {
       }
     } catch (err) {
       setError(
-        err.response?.data?.message || "Registrasi gagal. Coba lagi nanti.",
+        err.response?.data?.message ||
+          "Registrasi gagal. Pastikan data benar (Email unik & Password min 8 karakter).",
       );
     } finally {
       setLoading(false);
@@ -63,16 +68,15 @@ const SignUpScreen = () => {
 
   return (
     <div className="min-h-screen bg-[#F0F7FF] flex items-center justify-center p-6 font-sans relative overflow-hidden">
-      {/* Dekorasi Background Halus */}
+      {/* Dekorasi Background */}
       <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-200/30 rounded-full blur-[120px]" />
       <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-300/20 rounded-full blur-[120px]" />
 
       <div className="max-w-6xl w-full flex flex-col md:flex-row items-center justify-between gap-12 relative z-10">
-        {/* SISI KIRI: Branding & Greeting */}
+        {/* SISI KIRI: Branding */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8 }}
           className="max-w-[450px] space-y-8 hidden md:block"
         >
           <div className="flex items-center gap-3">
@@ -83,31 +87,29 @@ const SignUpScreen = () => {
               Health<span className="text-blue-500">Mate</span>
             </h2>
           </div>
-
           <div className="space-y-4">
             <h1 className="text-5xl font-bold text-slate-900 leading-[1.1]">
               Ayo Bergabung Bersama <span className="text-blue-600">Kami.</span>
             </h1>
-            <p className="text-[#60a5fa] text-lg font-medium leading-relaxed">
+            <p className="text-[#60a5fa] text-lg font-medium">
               Daftar sekarang untuk mendapatkan akses penuh ke konsultasi AI dan
               pemantauan kesehatan pribadimu.
             </p>
           </div>
         </motion.div>
 
-        {/* SISI KANAN: Form Sign Up Card */}
+        {/* SISI KANAN: Form Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-          className="bg-white rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white p-8 md:p-10 w-full max-w-[550px]"
+          className="bg-white rounded-[3rem] shadow-xl border border-white p-8 md:p-10 w-full max-w-[550px]"
         >
           <div className="mb-8 text-center md:text-left">
             <h3 className="text-3xl font-black text-slate-900 mb-2">
               Buat Akun
             </h3>
             <p className="text-slate-400 font-medium italic text-sm">
-              Lengkapi data diri Anda di bawah ini
+              Lengkapi data diri Anda sesuai skema terbaru
             </p>
           </div>
 
@@ -118,49 +120,33 @@ const SignUpScreen = () => {
           )}
 
           <form className="space-y-4" onSubmit={handleRegister}>
-            {/* Row 1: Names */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-[0.15em]">
-                  First Name
-                </label>
-                <div className="relative group">
-                  <User
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors"
-                    size={18}
-                  />
-                  <input
-                    type="text"
-                    name="firstName"
-                    required
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    placeholder="Contoh: Yenni"
-                    className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
-                  />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-[0.15em]">
-                  Last Name
-                </label>
+            {/* Nama Lengkap */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-widest">
+                Nama Lengkap
+              </label>
+              <div className="relative group">
+                <User
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors"
+                  size={18}
+                />
                 <input
                   type="text"
-                  name="lastName"
+                  name="nama"
                   required
-                  value={formData.lastName}
+                  value={formData.nama}
                   onChange={handleChange}
-                  placeholder="Evariani"
-                  className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 px-6 outline-none focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
+                  placeholder="Masukkan nama lengkap"
+                  className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium"
                 />
               </div>
             </div>
 
-            {/* Row 2: Birth & Phone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Birth Date */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-[0.15em]">
-                  Birth Date
+                <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-widest">
+                  Tanggal Lahir
                 </label>
                 <div className="relative group">
                   <Calendar
@@ -168,18 +154,46 @@ const SignUpScreen = () => {
                     size={18}
                   />
                   <input
-                    type="text"
+                    type="date" // Gunakan type date biar user enak milihnya gess
                     name="birthDate"
+                    required
                     value={formData.birthDate}
                     onChange={handleChange}
-                    placeholder="DD/MM/YYYY"
-                    className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
+                    className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium"
                   />
                 </div>
               </div>
+
+              {/* Jenis Kelamin */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-[0.15em]">
-                  Phone Number
+                <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-widest">
+                  Jenis Kelamin
+                </label>
+                <div className="relative group">
+                  <Users
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors"
+                    size={18}
+                  />
+                  <select
+                    name="jenis_kelamin"
+                    required
+                    value={formData.jenis_kelamin}
+                    onChange={handleChange}
+                    className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium appearance-none cursor-pointer"
+                  >
+                    <option value="">Pilih...</option>
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Phone */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-widest">
+                  Nomor Telepon
                 </label>
                 <div className="relative group">
                   <Phone
@@ -191,38 +205,38 @@ const SignUpScreen = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    placeholder="0812..."
-                    className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
+                    placeholder="08..."
+                    className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-widest">
+                  Email
+                </label>
+                <div className="relative group">
+                  <Mail
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors"
+                    size={18}
+                  />
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="name@mail.com"
+                    className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Row 3: Email */}
+            {/* Password */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-[0.15em]">
-                Email Address
-              </label>
-              <div className="relative group">
-                <Mail
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors"
-                  size={18}
-                />
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="name@example.com"
-                  className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
-                />
-              </div>
-            </div>
-
-            {/* Row 4: Password */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-[0.15em]">
+              <label className="text-[10px] font-bold text-slate-500 ml-2 uppercase tracking-widest">
                 Password
               </label>
               <div className="relative group">
@@ -238,7 +252,7 @@ const SignUpScreen = () => {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Min. 8 Karakter"
-                  className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-100 transition-all text-sm font-medium"
+                  className="w-full bg-[#F8FAFF] border border-blue-50 rounded-[1.25rem] py-3.5 pl-11 pr-4 outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium"
                 />
               </div>
             </div>
@@ -249,10 +263,8 @@ const SignUpScreen = () => {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               className={`w-full flex items-center justify-center gap-3 ${
-                loading
-                  ? "bg-slate-300 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 shadow-blue-100"
-              } text-white font-black py-4 rounded-[1.25rem] transition-all shadow-xl mt-6 text-base`}
+                loading ? "bg-slate-300" : "bg-blue-600 hover:bg-blue-700"
+              } text-white font-black py-4 rounded-[1.25rem] transition-all shadow-xl mt-6`}
             >
               {loading ? "Mendaftarkan Akun..." : "Buat Akun Sekarang"}
               {!loading && <ArrowRight size={18} />}
@@ -263,7 +275,7 @@ const SignUpScreen = () => {
             Sudah punya akun HealthMate?{" "}
             <a
               href="/login"
-              className="text-blue-600 font-black hover:underline underline-offset-4"
+              className="text-blue-600 font-black hover:underline"
             >
               Log In Disini
             </a>

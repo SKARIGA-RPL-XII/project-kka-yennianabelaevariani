@@ -2,31 +2,35 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; // Penting kalau kamu pakai API untuk login/regis
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
+
+    // 1. Kasih tahu Laravel kalau Primary Key-nya bukan 'id' tapi 'id_user'
+    protected $primaryKey = 'id_user';
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var list<string>
+     * Sesuaikan dengan kolom-kolom yang ada di migration kamu gess!
      */
     protected $fillable = [
-        'name',
+        'nama',           
         'email',
         'password',
+        'jenis_kelamin',  
+        'tanggal_lahir',  
+        'telepon',        
+        'role',           
     ];
 
     /**
      * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
      */
     protected $hidden = [
         'password',
@@ -35,14 +39,13 @@ class User extends Authenticatable
 
     /**
      * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'tanggal_lahir' => 'date', // Cast agar format tanggalnya rapi
         ];
     }
 }

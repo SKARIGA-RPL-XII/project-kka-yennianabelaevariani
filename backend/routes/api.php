@@ -24,7 +24,7 @@ Route::delete('/kategori/{id}', [KategoriController::class, 'destroy']);
 // Route::get('/chat', [ChatbotController::class, 'chat']);
 Route::post('/chat', [ChatbotController::class, 'chat']);
 
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::post('/skrining', [SkriningController::class, 'store']);
