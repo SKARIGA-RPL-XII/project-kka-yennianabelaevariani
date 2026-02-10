@@ -104,7 +104,7 @@ const AdminDashboard = () => {
         {/* Bottom Section: Charts & Activities */}
         <div className="grid grid-cols-3 gap-8">
           {/* Main Chart Placeholder */}
-          <div className="col-span-2 bg-white p-8 rounded-[40px] shadow-sm border border-blue-50">
+          {/* <div className="col-span-2 bg-white p-8 rounded-[40px] shadow-sm border border-blue-50">
             <div className="flex justify-between items-center mb-8">
               <h4 className="font-bold text-blue-900 text-lg">
                 Grafik Pengguna Baru
@@ -113,17 +113,17 @@ const AdminDashboard = () => {
                 <option>Minggu Ini</option>
                 <option>Bulan Ini</option>
               </select>
-            </div>
+            </div> */}
             {/* Box untuk visualisasi chart */}
-            <div className="h-64 w-full bg-gradient-to-t from-blue-50/50 to-transparent rounded-3xl border-b-2 border-dashed border-blue-100 flex items-center justify-center">
+            {/* <div className="h-64 w-full bg-gradient-to-t from-blue-50/50 to-transparent rounded-3xl border-b-2 border-dashed border-blue-100 flex items-center justify-center">
               <p className="text-blue-300 italic text-sm">
                 Visualisasi Chart (Integrasikan Recharts di sini)
               </p>
             </div>
-          </div>
+          </div> */}
 
           {/* Activity Logs */}
-          <div className="bg-white p-8 rounded-[40px] shadow-sm border border-blue-50 flex flex-col">
+          {/* <div className="bg-white p-8 rounded-[40px] shadow-sm border border-blue-50 flex flex-col">
             <h4 className="font-bold text-blue-900 text-lg mb-6">
               Riwayat Aktivitas
             </h4>
@@ -163,7 +163,7 @@ const AdminDashboard = () => {
             <button className="mt-auto pt-6 text-center text-blue-500 font-bold text-sm hover:underline">
               Lihat Semua Aktivitas
             </button>
-          </div>
+          </div> */}
         </div>
       </main>
     </div>

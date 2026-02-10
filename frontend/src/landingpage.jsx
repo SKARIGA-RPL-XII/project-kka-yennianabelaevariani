@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import dokter from "./assets/image/dokternunjuk.png";
 import about from "./assets/image/fotoabout.png";
 import chat from "./assets/icon/chatbot.png";
@@ -8,54 +9,54 @@ import skrining from "./assets/icon/Skrining.png";
 import rekom from "./assets/icon/rekomendasi.png";
 
 // Sub-Komponen Navbar
-const Navbar = ({ isDark }) => (
-  <nav
-    className={`flex justify-between items-center px-6 md:px-20 py-6 sticky top-0 z-50 transition-colors duration-500 border-b ${
-      isDark
-        ? "bg-[#020817]/80 border-slate-800 backdrop-blur-md"
-        : "bg-white/80 border-slate-100 backdrop-blur-md"
-    }`}
-  >
-    <div
-      className={`text-3xl font-bold transition-colors ${isDark ? "text-white" : "text-slate-800"}`}
+const Navbar = ({ isDark }) => {
+  const navigate = useNavigate();
+
+  return (
+    <nav
+      style={{ zIndex: 9999 }} // Memastikan di atas segala elemen
+      className={`flex justify-between items-center px-6 md:px-20 py-5 fixed top-0 left-0 w-full transition-all duration-500 border-b ${
+        isDark
+          ? "bg-[#020817] border-slate-800"
+          : "bg-white border-slate-100 shadow-sm"
+      }`}
     >
-      HealthMate
-    </div>
-    <div className="hidden md:flex items-center gap-8">
-      {/* UPDATE: ID disesuaikan agar bisa diklik */}
-      {[
-        { name: "Home", id: "#home" },
-        { name: "Fitur", id: "#fitur" },
-        { name: "Tentang Sistem", id: "#tentang" },
-        { name: "FAQ", id: "#faq" },
-      ].map((link) => (
-        <a
-          key={link.name}
-          href={link.id}
-          className={`text-xl font-medium transition-colors ${
-            isDark
-              ? "text-slate-300 hover:text-blue-400"
-              : "text-slate-600 hover:text-blue-600"
-          }`}
-        >
-          {link.name}
-        </a>
-      ))}
-      <button className="bg-[#4a90e2] text-white px-8 py-3 rounded-lg hover:bg-blue-500 transition-all hover:shadow-lg ml-4">
-        Login
-      </button>
-      <button
-        className={`border px-8 py-3 rounded-lg transition-all ${
-          isDark
-            ? "border-slate-700 text-white hover:bg-slate-800"
-            : "border-[#7fb3d5] text-[#7fb3d5] hover:bg-blue-50"
-        }`}
+      <div
+        className={`text-2xl font-bold ${isDark ? "text-white" : "text-blue-600"}`}
       >
-        Register
-      </button>
-    </div>
-  </nav>
-);
+        HealthMate
+      </div>
+
+      <div className="hidden md:flex items-center gap-8">
+        {[
+          { name: "Beranda", id: "#home" },
+          { name: "Fitur", id: "#fitur" },
+          { name: "Tentang", id: "#tentang" },
+          { name: "FAQ", id: "#faq" },
+        ].map((link) => (
+          <a
+            key={link.name}
+            href={link.id}
+            className={`font-medium transition-colors ${
+              isDark
+                ? "text-slate-300 hover:text-blue-400"
+                : "text-slate-600 hover:text-blue-600"
+            }`}
+          >
+            {link.name}
+          </a>
+        ))}
+
+        <button
+          onClick={() => navigate("/login")}
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-all cursor-pointer"
+        >
+          Login
+        </button>
+      </div>
+    </nav>
+  );
+};
 
 // Sub-Komponen Feature Card
 const FeatureCard = ({ icon, title, desc, delay, isDark }) => (
@@ -349,7 +350,6 @@ const HealthMate = () => {
           ))}
         </div>
       </section>
-
 
       {/* Footer */}
       <footer

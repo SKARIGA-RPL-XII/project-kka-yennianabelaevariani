@@ -12,16 +12,16 @@ const Navbar = () => {
 
       {/* Menu Items */}
       <div className="flex items-center gap-8">
-        <a href="#" className="text-gray-500 hover:text-blue-500 transition">
+        <a href="/d" className="text-gray-500 hover:text-blue-500 transition">
           Beranda
         </a>
-        <a href="#" className="text-gray-500 hover:text-blue-500 transition">
+        <a href="/c" className="text-gray-500 hover:text-blue-500 transition">
           AI Chatbot
         </a>
-        <a href="#" className="text-gray-500 hover:text-blue-500 transition">
+        <a href="/skriningawal" className="text-gray-500 hover:text-blue-500 transition">
           Skrining
         </a>
-        <a href="#" className="text-gray-500 hover:text-blue-500 transition">
+        <a href="/r" className="text-gray-500 hover:text-blue-500 transition">
           Riwayat
         </a>
 
