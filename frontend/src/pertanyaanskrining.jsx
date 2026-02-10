@@ -438,27 +438,42 @@ const ManajemenPertanyaan = () => {
                       min="1"
                       max="4"
                       value={formData.bobot}
-                      onChange={(e) =>
-                        setFormData({ ...formData, bobot: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const nilaiBobot = parseInt(e.target.value) || 0;
+                        setFormData({
+                          ...formData,
+                          bobot: nilaiBobot,
+                          // Otomatis true jika 4, otomatis false jika selain 4
+                          is_darurat: nilaiBobot === 4,
+                        });
+                      }}
                       className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-blue-900"
                     />
                   </div>
+
                   {/* Is Darurat */}
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-blue-900 uppercase tracking-widest ml-1">
                       Tingkat Bahaya
                     </label>
                     <div
-                      onClick={() =>
+                      onClick={() => {
+                        // Jika bobot 4, status dikunci (tidak bisa diklik manual)
+                        if (parseInt(formData.bobot) === 4) {
+                          alert("Bobot 4 wajib Darurat gess!");
+                          return;
+                        }
+                        // Jika bobot 1-3, baru boleh toggle manual
                         setFormData({
                           ...formData,
                           is_darurat: !formData.is_darurat,
-                        })
-                      }
-                      className={`flex items-center justify-center gap-2 py-4 px-6 rounded-2xl border cursor-pointer transition-all font-bold ${formData.is_darurat ? "bg-red-50 border-red-200 text-red-500" : "bg-blue-50 border-blue-100 text-blue-400"}`}
+                        });
+                      }}
+                      className={`flex items-center justify-center gap-2 py-4 px-6 rounded-2xl border cursor-pointer transition-all font-bold 
+      ${formData.is_darurat ? "bg-red-50 border-red-200 text-red-500" : "bg-blue-50 border-blue-100 text-blue-400"}
+      ${parseInt(formData.bobot) === 4 ? "cursor-not-allowed opacity-80" : ""}`}
                     >
-                      <AlertCircle size={18} />{" "}
+                      <AlertCircle size={18} />
                       {formData.is_darurat ? "Darurat" : "Normal"}
                     </div>
                   </div>

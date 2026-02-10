@@ -1,6 +1,26 @@
 import React from "react";
-import Sidebar from "./component/sidebar"; // Panggil sidebar tadi gess
-import { Search, Bell, ChevronDown, TrendingUp } from "lucide-react";
+import Sidebar from "./component/sidebar";
+import {
+  Search,
+  TrendingUp,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
+} from "lucide-react";
+// Import komponen chart
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
 
 const AdminDashboard = () => {
   const stats = [
@@ -24,6 +44,38 @@ const AdminDashboard = () => {
     },
   ];
 
+  // Data untuk Grafik Pengguna Baru (Line Chart)
+  const lineData = [
+    { name: "apayw", 2020: 60, 2021: 95, 2022: 40 },
+    { name: "ok", 2020: 80, 2021: 95, 2022: 90 },
+    { name: "wk", 2020: 15, 2021: 65, 2022: 50 },
+    { name: "uhuy", 2020: 10, 2021: 65, 2022: 45 },
+    { name: "uyy", 2020: 60, 2021: 40, 2022: 10 },
+    { name: "a", 2020: 65, 2021: 45, 2022: 90 },
+  ];
+
+  // Data untuk Resiko (Pie Chart / Donut Chart)
+  const pieData = [
+    {
+      name: "Resiko Rendah",
+      value: 40,
+      color: "#22C55E",
+      icon: <CheckCircle2 size={16} className="text-green-500" />,
+    },
+    {
+      name: "Resiko Sedang",
+      value: 30,
+      color: "#FACC15",
+      icon: <AlertCircle size={16} className="text-yellow-500" />,
+    },
+    {
+      name: "Resiko Tinggi",
+      value: 30,
+      color: "#EF4444",
+      icon: <XCircle size={16} className="text-red-500" />,
+    },
+  ];
+
   return (
     <div className="flex min-h-screen bg-[#F8FAFF]">
       <Sidebar />
@@ -42,26 +94,8 @@ const AdminDashboard = () => {
               className="w-full bg-white border border-blue-50 rounded-2xl py-3 px-12 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all shadow-sm italic text-sm"
             />
           </div>
-
           <div className="flex items-center gap-6">
-            {/* <button className="relative p-2 text-blue-400 bg-white rounded-xl shadow-sm border border-blue-50"> */}
-              {/* <Bell size={20} /> */}
-              {/* <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span> */}
-            {/* </button> */}
-            <div className="flex items-center gap-3 pl-6 border-l border-blue-100">
-              {/* <div className="text-right">
-                <p className="text-sm font-bold text-blue-900">Administrator</p>
-                <p className="text-[10px] font-semibold text-blue-400 uppercase tracking-wider">
-                  Super Admin
-                </p>
-              </div> */}
-              {/* <img
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
-                className="w-10 h-10 rounded-xl bg-blue-100 border border-blue-50"
-                alt="Profile"
-              /> */}
-              
-            </div>
+            <div className="flex items-center gap-3 pl-6 border-l border-blue-100"></div>
           </div>
         </header>
 
@@ -101,70 +135,108 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        {/* Bottom Section: Charts & Activities */}
+        {/* --- BAGIAN CHART (START) --- */}
         <div className="grid grid-cols-3 gap-8">
-          {/* Main Chart Placeholder */}
-          {/* <div className="col-span-2 bg-white p-8 rounded-[40px] shadow-sm border border-blue-50">
-            <div className="flex justify-between items-center mb-8">
-              <h4 className="font-bold text-blue-900 text-lg">
-                Grafik Pengguna Baru
-              </h4>
-              <select className="bg-blue-50 text-blue-600 text-xs font-bold px-4 py-2 rounded-xl border-none outline-none">
-                <option>Minggu Ini</option>
-                <option>Bulan Ini</option>
-              </select>
-            </div> */}
-            {/* Box untuk visualisasi chart */}
-            {/* <div className="h-64 w-full bg-gradient-to-t from-blue-50/50 to-transparent rounded-3xl border-b-2 border-dashed border-blue-100 flex items-center justify-center">
-              <p className="text-blue-300 italic text-sm">
-                Visualisasi Chart (Integrasikan Recharts di sini)
-              </p>
-            </div>
-          </div> */}
-
-          {/* Activity Logs */}
-          {/* <div className="bg-white p-8 rounded-[40px] shadow-sm border border-blue-50 flex flex-col">
-            <h4 className="font-bold text-blue-900 text-lg mb-6">
-              Riwayat Aktivitas
+          {/* Line Chart Section */}
+          <div className="col-span-2 bg-white p-8 rounded-[35px] shadow-sm border border-blue-50">
+            <h4 className="text-xl font-bold text-blue-900 mb-8">
+              Grafik Pengguna Baru
             </h4>
-            <div className="space-y-6">
-              {[
-                {
-                  user: "Admin",
-                  action: "menambahkan artikel baru",
-                  time: "2 jam lalu",
-                },
-                {
-                  user: "Admin",
-                  action: "memperbarui skor skrining",
-                  time: "5 jam lalu",
-                },
-                {
-                  user: "Admin",
-                  action: "menonaktifkan user",
-                  time: "1 hari lalu",
-                },
-              ].map((act, i) => (
-                <div key={i} className="flex gap-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={lineData}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#F1F5F9"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#94A3B8", fontSize: 10 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#94A3B8", fontSize: 10 }}
+                  />
+                  <Tooltip />
+                  <Legend
+                    verticalAlign="bottom"
+                    height={36}
+                    iconType="circle"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="2020"
+                    stroke="#4ADE80"
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="2021"
+                    stroke="#FACC15"
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="2022"
+                    stroke="#F87171"
+                    strokeWidth={2}
+                    dot={{ r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Pie Chart Section */}
+          <div className="bg-white p-8 rounded-[35px] shadow-sm border border-blue-50 flex flex-col items-center">
+            <div className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={0}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Custom Legend */}
+            <div className="w-full space-y-4 mt-4">
+              {pieData.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {item.icon}
+                    <span className="text-sm font-bold text-blue-900">
+                      {item.name}
+                    </span>
                   </div>
-                  <div>
-                    <p className="text-xs text-blue-900 leading-relaxed">
-                      <span className="font-bold">{act.user}</span> {act.action}
-                    </p>
-                    <p className="text-[10px] text-blue-300 font-bold mt-1 uppercase">
-                      {act.time}
-                    </p>
-                  </div>
+                  <span className="text-sm font-bold text-slate-400">
+                    {item.value}%
+                  </span>
                 </div>
               ))}
             </div>
-            <button className="mt-auto pt-6 text-center text-blue-500 font-bold text-sm hover:underline">
-              Lihat Semua Aktivitas
-            </button>
-          </div> */}
+          </div>
         </div>
+        {/* --- BAGIAN CHART (END) --- */}
       </main>
     </div>
   );

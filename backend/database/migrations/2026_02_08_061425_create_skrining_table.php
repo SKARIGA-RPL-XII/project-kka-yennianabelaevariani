@@ -12,17 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('skrining', function (Blueprint $table) {
-            $table->id(); 
-            
-            $table->foreignId('user_id')
-                  ->references('id_user')
-                  ->on('users')
-                  ->onDelete('cascade');
-                  
-            $table->integer('total_skor')->default(0);
-            $table->enum('status', ['rendah', 'sedang', 'tinggi']);
-            $table->timestamps();
-        });
+    $table->id();
+
+    $table->foreignId('user_id')
+          ->constrained('users', 'id_user')
+          ->onDelete('cascade');
+
+    $table->integer('total_skor')->default(0);
+    $table->string('status', 20); // proses, rendah, sedang, tinggi
+    $table->timestamps();
+});
+
     }
 
     /**
