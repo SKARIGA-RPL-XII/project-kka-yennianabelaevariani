@@ -14,6 +14,8 @@ class User extends Authenticatable
 
     // 1. Kasih tahu Laravel kalau Primary Key-nya bukan 'id' tapi 'id_user'
     protected $primaryKey = 'id_user';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     /**
      * The attributes that are mass assignable.
@@ -47,5 +49,11 @@ class User extends Authenticatable
             'password' => 'hashed',
             'tanggal_lahir' => 'date', // Cast agar format tanggalnya rapi
         ];
+    }
+
+    // ini buat ngasih tahu sanctum nya kalau primary key nya itu id_user bukan id
+    public function getAuthIdentifierName()
+    {
+        return 'id_user';
     }
 }

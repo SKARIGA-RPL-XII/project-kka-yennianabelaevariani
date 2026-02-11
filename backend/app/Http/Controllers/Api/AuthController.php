@@ -41,16 +41,27 @@ public function register(Request $request)
         }
     }
 
-public function login(Request $request) {
-    $fields = $request->validate([
-        'email' => 'required|string',
-        'password' => 'required|string'
-    ]);
+    public function login(Request $request)
+    {
+        $fields = $request->validate([
+            'email' => 'required|string',
+            'password' => 'required|string'
+        ]);
 
-    if(!auth()->attempt($fields)) {
-        return response(['message' => 'Email atau Password Salah'], 401);
+        $user = User::where('email', $fields['email'])->first();
+
+        if (!$user || !Hash::check($fields['password'], $user->password)) {
+            return response()->json([
+                'message' => 'Email atau Password Salah'
+            ], 401);
+        }
+
+        // kirim token jika success login
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'user' => $user,
+            'token' => $token // kirim ini 
+        ], 200);
     }
-
-    return response(['user' => auth()->user(), 'message' => 'Login Berhasil'], 200);
-}
-}
+}   

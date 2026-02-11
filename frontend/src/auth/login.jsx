@@ -33,6 +33,7 @@ const LoginScreen = () => {
       });
 
       if (response.data.user) {
+        localStorage.setItem("token", JSON.stringify(response.data.token)); // set token ke localstorage ambil dari respon backend
         localStorage.setItem("user", JSON.stringify(response.data.user));
         const targetPath =
           response.data.user.role === "admin" ? "/dasboard" : "/d";

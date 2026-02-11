@@ -21,8 +21,11 @@ Route::get('/kategori/{id}', [KategoriController::class, 'show']);
 Route::put('/kategori/{id}', [KategoriController::class, 'update']);
 Route::delete('/kategori/{id}', [KategoriController::class, 'destroy']);
 
-Route::post('/chatbot', [ChatbotController::class, 'chat']);
-Route::get('/chatbot/history', [ChatbotController::class, 'history']);
+// Bungkus dengan middleware sanctum agar auth()->id() bisa terbaca
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/chatbot', [ChatbotController::class, 'chat']);
+    Route::get('/chatbot/history', [ChatbotController::class, 'history']);
+});
 
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);

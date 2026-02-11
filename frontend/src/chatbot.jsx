@@ -35,10 +35,23 @@ const Chatbot = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post("http://127.0.0.1:8000/api/chatbot", {
-        message: userMessage.text,
-        history: newMessages, // 👈 kirim riwayat chat
-      });
+      const token = localStorage.getItem("token")?.replace(/"/g, "");
+
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/chatbot",
+        {
+          message: userMessage.text,
+          history: newMessages,
+        },
+
+        // disini tambahin headers buat mengatasi di block oleh CORS
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        },
+      );
 
       const botMessage = {
         sender: "bot",

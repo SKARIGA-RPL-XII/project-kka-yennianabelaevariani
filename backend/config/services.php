@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    // bikin services baru buat di pake di controller
+    // alasannya karena laravel suka conflict sama env :sad
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+    ],
 ];
