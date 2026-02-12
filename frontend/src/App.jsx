@@ -13,6 +13,7 @@ import User from "./ManajemenUser";
 import Pertanyaanskrining from "./pertanyaanskrining";
 import Kategory from "./kategory";
 import Profile from "./profile";
+import HasilSkrining from "./hasilskrining";
 import "./index.css";
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
         <Route path="/Pertanyaanskrining" element={<Pertanyaanskrining />} />
         <Route path="/kategori" element={<Kategory />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/hasilskrining" element={<HasilSkrining />} />
       </Routes>
     </BrowserRouter>
   );

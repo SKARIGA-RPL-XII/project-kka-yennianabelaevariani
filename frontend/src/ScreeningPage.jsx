@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "./component/navbaru";
+import { useNavigate } from "react-router-dom";
+
 import axios from "axios";
 
 const QUESTIONS_PER_PAGE = 5;
-
 const SkriningGejala = () => {
+  const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -71,11 +73,14 @@ const SkriningGejala = () => {
         payload,
       );
 
-      alert(
-        `Skrining selesai!\nStatus: ${res.data.status}\nSkor: ${res.data.total_skor}`,
-      );
+      // ⬇️ pindah halaman + kirim data
+      navigate("/hasilskrining", {
+        state: {
+          status: res.data.status,
+          total_skor: res.data.total_skor,
+        },
+      });
     } catch (err) {
-      console.error(err);
       alert("Terjadi kesalahan saat mengirim data skrining");
     } finally {
       setLoading(false);
