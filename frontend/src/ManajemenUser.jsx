@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "./component/sidebar";
-import { Search, Trash2, Loader2 } from "lucide-react";
+import { Search, Trash2, Loader2, CheckSquare, Square } from "lucide-react";
 
 const ManajemenUser = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState([]);
 
   const fetchUsers = async () => {
     try {
@@ -30,9 +31,50 @@ const ManajemenUser = () => {
       try {
         await axios.delete(`http://localhost:8000/api/users/${id}`);
         setUsers(users.filter((user) => user.id_user !== id));
+        setSelectedUsers(selectedUsers.filter((item) => item !== id));
       } catch (error) {
         alert("Gagal menghapus user gess.");
       }
+    }
+  };
+
+  // Fungsi untuk hapus banyak user sekaligus
+  const handleBulkDelete = async () => {
+    if (
+      window.confirm(
+        `Yakin mau hapus ${selectedUsers.length} user yang dipilih?`,
+      )
+    ) {
+      try {
+        // Asumsi backend menerima array ID atau kamu bisa loop jika backend hanya support per ID
+        await Promise.all(
+          selectedUsers.map((id) =>
+            axios.delete(`http://localhost:8000/api/users/${id}`),
+          ),
+        );
+
+        setUsers(users.filter((user) => !selectedUsers.includes(user.id_user)));
+        setSelectedUsers([]);
+        alert("Berhasil menghapus user terpilih gess!");
+      } catch (error) {
+        alert("Gagal menghapus beberapa user gess.");
+      }
+    }
+  };
+
+  const handleSelectUser = (id) => {
+    if (selectedUsers.includes(id)) {
+      setSelectedUsers(selectedUsers.filter((item) => item !== id));
+    } else {
+      setSelectedUsers([...selectedUsers, id]);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUsers.length === filteredUsers.length) {
+      setSelectedUsers([]);
+    } else {
+      setSelectedUsers(filteredUsers.map((user) => user.id_user));
     }
   };
 
@@ -62,13 +104,26 @@ const ManajemenUser = () => {
       <Sidebar />
 
       <main className="flex-1 p-10">
-        <header className="mb-10">
-          <h2 className="text-3xl font-bold text-blue-900 mb-2">
-            Manajemen Pengguna
-          </h2>
-          <p className="text-[#60a5fa] font-medium">
-            Admin hanya dapat melihat dan menghapus data pengguna.
-          </p>
+        <header className="mb-10 flex justify-between items-end">
+          <div>
+            <h2 className="text-3xl font-bold text-blue-900 mb-2">
+              Manajemen Pengguna
+            </h2>
+            <p className="text-[#60a5fa] font-medium">
+              Admin hanya dapat melihat dan menghapus data pengguna.
+            </p>
+          </div>
+
+          {/* Tombol Hapus Massal - Muncul jika ada yang dipilih */}
+          {selectedUsers.length > 0 && (
+            <button
+              onClick={handleBulkDelete}
+              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-2xl shadow-lg shadow-red-100 transition-all text-sm font-bold"
+            >
+              <Trash2 size={18} />
+              Hapus {selectedUsers.length} User
+            </button>
+          )}
         </header>
 
         {/* Search */}
@@ -101,6 +156,17 @@ const ManajemenUser = () => {
             <table className="w-full text-left text-sm">
               <thead className="bg-[#F8FAFF] border-b border-blue-50">
                 <tr>
+                  <th className="px-6 py-5 w-12 text-center">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 rounded border-blue-200 text-blue-600 focus:ring-blue-500"
+                      checked={
+                        filteredUsers.length > 0 &&
+                        selectedUsers.length === filteredUsers.length
+                      }
+                      onChange={toggleSelectAll}
+                    />
+                  </th>
                   <th className="px-6 py-5 font-bold text-blue-900">Nama</th>
                   <th className="px-6 py-5 font-bold text-blue-900">Email</th>
                   <th className="px-6 py-5 font-bold text-blue-900">JK</th>
@@ -114,7 +180,18 @@ const ManajemenUser = () => {
               <tbody className="divide-y divide-blue-50">
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => (
-                    <tr key={user.id_user} className="hover:bg-blue-50/30">
+                    <tr
+                      key={user.id_user}
+                      className={`hover:bg-blue-50/30 transition-colors ${selectedUsers.includes(user.id_user) ? "bg-blue-50/50" : ""}`}
+                    >
+                      <td className="px-6 py-5 text-center">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-blue-200 text-blue-600 focus:ring-blue-500"
+                          checked={selectedUsers.includes(user.id_user)}
+                          onChange={() => handleSelectUser(user.id_user)}
+                        />
+                      </td>
                       <td className="px-6 py-5 font-bold text-blue-900 flex items-center gap-3">
                         <img
                           src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nama}`}
@@ -132,7 +209,7 @@ const ManajemenUser = () => {
                       <td className="px-6 py-5 text-center">
                         <button
                           onClick={() => handleDelete(user.id_user)}
-                          className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-xl"
+                          className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -142,7 +219,7 @@ const ManajemenUser = () => {
                 ) : (
                   <tr>
                     <td
-                      colSpan="6"
+                      colSpan="7"
                       className="text-center py-10 text-slate-400 italic"
                     >
                       User tidak ditemukan gess...

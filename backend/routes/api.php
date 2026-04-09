@@ -9,6 +9,7 @@ use App\Http\Controllers\SkriningController;
 use App\Http\Controllers\PertanyaanController;
 use App\Http\Controllers\KategoriController;
 use App\Http\Controllers\PertanyaanSkriningController;
+use App\Http\Controllers\Admin\DashboardController;
 
 Route::get('/users', [UserController::class, 'index']);
 Route::get('/users/{id}', [UserController::class, 'show']);
@@ -33,3 +34,5 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/skrining', [SkriningController::class, 'store']);
 Route::get('/pertanyaan', [PertanyaanController::class, 'index']);
 Route::apiResource('/pertanyaanskrining', PertanyaanSkriningController::class);
+
+Route::get('/admin/dashboard-stats', [DashboardController::class, 'getStats']);

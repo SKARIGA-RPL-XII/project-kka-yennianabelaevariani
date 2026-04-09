@@ -22,6 +22,9 @@ const ManajemenPertanyaan = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua Kategori");
 
+  // --- STATE UNTUK CHECKBOX (HAPUS MASAL) ---
+  const [selectedItems, setSelectedItems] = useState([]);
+
   // --- STATE UNTUK MODAL & CRUD ---
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -44,9 +47,9 @@ const ManajemenPertanyaan = () => {
         axios.get("http://localhost:8000/api/pertanyaanskrining"),
         axios.get("http://localhost:8000/api/kategori"),
       ]);
-      // Sesuaikan dengan struktur res.data.data dari controllermu
       setQuestions(resQuestions.data.data || []);
       setCategories(resCategories.data.data || []);
+      setSelectedItems([]); // Reset pilihan setelah fetch
     } catch (err) {
       console.error("Gagal ambil data gess:", err);
       setQuestions([]);
@@ -92,30 +95,35 @@ const ManajemenPertanyaan = () => {
     }
 
     try {
+      const payload = {
+        ...formData,
+        is_darurat: formData.is_darurat ? 1 : 0,
+      };
+
       if (isEditMode) {
-        // UPDATE
         await axios.put(
           `http://localhost:8000/api/pertanyaanskrining/${editId}`,
-          formData,
+          payload,
         );
         alert("Pertanyaan berhasil diperbarui!");
       } else {
-        // STORE
         await axios.post(
           "http://localhost:8000/api/pertanyaanskrining",
-          formData,
+          payload,
         );
         alert("Pertanyaan baru berhasil ditambahkan!");
       }
       setIsModalOpen(false);
-      fetchData(); // Refresh data
+      fetchData();
     } catch (err) {
       console.error(err);
-      alert("Gagal menyimpan data. Pastikan semua field terisi dengan benar.");
+      alert("Gagal menyimpan data gess.");
     }
   };
 
+  // --- FUNGSI HAPUS SATUAN ---
   const handleDelete = async (id) => {
+    if (!id) return;
     if (window.confirm("Hapus pertanyaan ini dari sistem?")) {
       try {
         await axios.delete(
@@ -123,9 +131,44 @@ const ManajemenPertanyaan = () => {
         );
         fetchData();
       } catch (err) {
-        alert("Gagal menghapus pertanyaan.");
+        alert("Gagal menghapus pertanyaan. Periksa koneksi atau ID data.");
       }
     }
+  };
+
+  // --- FUNGSI HAPUS MASAL ---
+  const handleBulkDelete = async () => {
+    if (
+      window.confirm(
+        `Yakin ingin menghapus ${selectedItems.length} pertanyaan sekaligus?`,
+      )
+    ) {
+      try {
+        await Promise.all(
+          selectedItems.map((id) =>
+            axios.delete(`http://localhost:8000/api/pertanyaanskrining/${id}`),
+          ),
+        );
+        alert("Berhasil menghapus banyak data!");
+        fetchData();
+      } catch (err) {
+        alert("Gagal menghapus beberapa pertanyaan.");
+      }
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItems.length === currentQuestions.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(currentQuestions.map((q) => q.id));
+    }
+  };
+
+  const handleCheckboxChange = (id) => {
+    setSelectedItems((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+    );
   };
 
   // Logic Filter & Search
@@ -152,6 +195,7 @@ const ManajemenPertanyaan = () => {
 
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedItems([]);
   }, [searchTerm, selectedCategory]);
 
   return (
@@ -168,12 +212,22 @@ const ManajemenPertanyaan = () => {
               Atur daftar pertanyaan skrining, kategori, dan bobot penilaian.
             </p>
           </div>
-          <button
-            onClick={handleAddOpen}
-            className="flex items-center gap-2 bg-[#1e40af] text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-800 transition shadow-lg shadow-blue-100"
-          >
-            <Plus size={20} /> Tambah Pertanyaan
-          </button>
+          <div className="flex gap-4">
+            {selectedItems.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="flex items-center gap-2 bg-red-500 text-white px-6 py-3 rounded-2xl font-bold hover:bg-red-600 transition shadow-lg shadow-red-100"
+              >
+                <Trash2 size={20} /> Hapus ({selectedItems.length})
+              </button>
+            )}
+            <button
+              onClick={handleAddOpen}
+              className="flex items-center gap-2 bg-[#1e40af] text-white px-6 py-3 rounded-2xl font-bold hover:bg-blue-800 transition shadow-lg shadow-blue-100"
+            >
+              <Plus size={20} /> Tambah Pertanyaan
+            </button>
+          </div>
         </header>
 
         {/* Info Cards Summary */}
@@ -231,13 +285,14 @@ const ManajemenPertanyaan = () => {
               placeholder="Cari teks pertanyaan...."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-3 px-12 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm"
+              className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-3 px-12 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium"
             />
           </div>
+          {/* PERBAIKAN: Padding right ditingkatkan agar panah tidak mepet */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-[#F8FAFF] text-blue-900 font-bold text-xs px-6 py-3 rounded-2xl border border-blue-100 outline-none cursor-pointer"
+            className="bg-[#F8FAFF] text-blue-900 font-bold text-xs pl-6 pr-12 py-3 rounded-2xl border border-blue-100 outline-none cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%231e40af%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-no-repeat bg-[position:right_1.2rem_center] bg-[length:16px]"
           >
             <option>Semua Kategori</option>
             {categories.map((cat) => (
@@ -263,7 +318,18 @@ const ManajemenPertanyaan = () => {
                 <table className="w-full text-left">
                   <thead className="bg-[#F8FAFF] border-b border-blue-50">
                     <tr>
-                      <th className="px-8 py-5 text-sm font-bold text-blue-900 w-16 text-center">
+                      <th className="px-6 py-5 w-12 text-center">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-blue-200 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          checked={
+                            currentQuestions.length > 0 &&
+                            selectedItems.length === currentQuestions.length
+                          }
+                          onChange={toggleSelectAll}
+                        />
+                      </th>
+                      <th className="px-4 py-5 text-sm font-bold text-blue-900 w-16 text-center">
                         No.
                       </th>
                       <th className="px-8 py-5 text-sm font-bold text-blue-900">
@@ -284,9 +350,17 @@ const ManajemenPertanyaan = () => {
                     {currentQuestions.map((q, index) => (
                       <tr
                         key={q.id}
-                        className="hover:bg-blue-50/30 transition-colors group"
+                        className={`hover:bg-blue-50/30 transition-colors group ${selectedItems.includes(q.id) ? "bg-blue-50/50" : ""}`}
                       >
-                        <td className="px-8 py-6 text-sm font-bold text-blue-300 text-center">
+                        <td className="px-6 py-6 text-center">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 rounded border-blue-200 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            checked={selectedItems.includes(q.id)}
+                            onChange={() => handleCheckboxChange(q.id)}
+                          />
+                        </td>
+                        <td className="px-4 py-6 text-sm font-bold text-blue-300 text-center">
                           #{indexOfFirstItem + index + 1}
                         </td>
                         <td className="px-8 py-6">
@@ -398,7 +472,7 @@ const ManajemenPertanyaan = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, kategori_id: e.target.value })
                     }
-                    className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-blue-900 appearance-none"
+                    className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-blue-900 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%231e40af%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-no-repeat bg-[position:right_1.5rem_center] bg-[length:18px]"
                   >
                     <option value="">Pilih Kategori...</option>
                     {categories.map((cat) => (
@@ -439,12 +513,12 @@ const ManajemenPertanyaan = () => {
                       max="4"
                       value={formData.bobot}
                       onChange={(e) => {
-                        const nilaiBobot = parseInt(e.target.value) || 0;
+                        const val = parseInt(e.target.value) || 1;
+                        const safeVal = Math.min(Math.max(val, 1), 4);
                         setFormData({
                           ...formData,
-                          bobot: nilaiBobot,
-                          // Otomatis true jika 4, otomatis false jika selain 4
-                          is_darurat: nilaiBobot === 4,
+                          bobot: safeVal,
+                          is_darurat: safeVal === 4, // SYNC: Jika 4 maka darurat
                         });
                       }}
                       className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-blue-900"
@@ -458,20 +532,19 @@ const ManajemenPertanyaan = () => {
                     </label>
                     <div
                       onClick={() => {
-                        // Jika bobot 4, status dikunci (tidak bisa diklik manual)
-                        if (parseInt(formData.bobot) === 4) {
-                          alert("Bobot 4 wajib Darurat gess!");
-                          return;
-                        }
-                        // Jika bobot 1-3, baru boleh toggle manual
+                        const nextDarurat = !formData.is_darurat;
                         setFormData({
                           ...formData,
-                          is_darurat: !formData.is_darurat,
+                          is_darurat: nextDarurat,
+                          bobot: nextDarurat
+                            ? 4
+                            : formData.bobot === 4
+                              ? 3
+                              : formData.bobot, // SYNC: Jika darurat maka bobot 4
                         });
                       }}
                       className={`flex items-center justify-center gap-2 py-4 px-6 rounded-2xl border cursor-pointer transition-all font-bold 
-      ${formData.is_darurat ? "bg-red-50 border-red-200 text-red-500" : "bg-blue-50 border-blue-100 text-blue-400"}
-      ${parseInt(formData.bobot) === 4 ? "cursor-not-allowed opacity-80" : ""}`}
+                        ${formData.is_darurat ? "bg-red-50 border-red-200 text-red-500" : "bg-blue-50 border-blue-100 text-blue-400"}`}
                     >
                       <AlertCircle size={18} />
                       {formData.is_darurat ? "Darurat" : "Normal"}
@@ -503,4 +576,3 @@ const ManajemenPertanyaan = () => {
 };
 
 export default ManajemenPertanyaan;
-  

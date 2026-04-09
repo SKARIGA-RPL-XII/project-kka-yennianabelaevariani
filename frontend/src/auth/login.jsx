@@ -145,12 +145,7 @@ const LoginScreen = () => {
                   <label className="text-[13px] font-bold text-slate-400 ml-1 uppercase tracking-widest">
                     Password
                   </label>
-                  <a
-                    href="#"
-                    className="text-[13px] font-bold text-blue-600 hover:text-indigo-600 transition"
-                  >
-                    Lupa Password?
-                  </a>
+                  
                 </div>
                 <div className="relative group">
                   <Lock

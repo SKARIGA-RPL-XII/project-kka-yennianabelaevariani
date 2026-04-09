@@ -193,7 +193,7 @@ const HealthMate = () => {
       </section>
 
       {/* Features Section */}
-      <section id="fitur" className="py-10 px-6 text-center mb-20">
+      <section id="fitur" className="py-10 px-6 text-center mb-30 mt-16">
         <h2
           className={`text-5xl font-bold mb-28 leading-tight ${isDarkMode ? "text-white" : "text-[#1e3a8a]"}`}
         >
