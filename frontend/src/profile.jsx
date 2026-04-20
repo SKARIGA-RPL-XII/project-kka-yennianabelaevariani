@@ -147,12 +147,12 @@ const Profile = () => {
                 <img
                   src={`https://ui-avatars.com/api/?name=${userData.nama}&background=random&color=fff&size=128`}
                   alt="Avatar"
-                  className="w-full h-full object-cover"
+                  className="w-full h-  full object-cover"
                 />
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-white p-2 rounded-xl shadow-lg border border-slate-100 text-blue-600">
+              {/* <div className="absolute -bottom-2 -right-2 bg-white p-2 rounded-xl shadow-lg border border-slate-100 text-blue-600">
                 <Camera size={20} />
-              </div>
+              </div> */}
             </div>
 
             <h3 className="text-2xl font-black text-slate-900 leading-tight">

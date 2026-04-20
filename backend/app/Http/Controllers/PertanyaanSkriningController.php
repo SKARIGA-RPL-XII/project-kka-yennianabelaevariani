@@ -34,6 +34,10 @@ class PertanyaanSkriningController extends Controller
      */
     public function store(Request $request)
     {
+        return response()->json([
+        'debug_data' => $request->all(),
+        'message' => 'Laravel menerima data kamu gess!'
+         ]);
         $validator = Validator::make($request->all(), [
             'kategori_id'     => 'required|exists:kategori,id',
             'teks_pertanyaan' => 'required',
@@ -83,7 +87,7 @@ class PertanyaanSkriningController extends Controller
             'teks_pertanyaan' => 'required',
             'bobot'           => 'required|integer',
             'is_darurat'      => 'required|boolean'
-        ]);
+        ]); 
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
