@@ -10,23 +10,29 @@ class SkriningController extends Controller
 {
     public function store(Request $request)
     {
-        // 1. Validasi biar gak error 500 kalau data kosong
+        // 1. Pastikan User Auth
+        if (!$request->user()) {
+            return response()->json(['message' => 'Unauthenticated gess, login dulu!'], 401);
+        }
+
+        // 2. Validasi Input
         $validator = Validator::make($request->all(), [
-            'user_id' => 'required',
             'jawaban' => 'required|array',
+            'jawaban.*.pertanyaan_id' => 'required|integer',
+            'jawaban.*.skala_id' => 'required|integer',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        DB::beginTransaction();
+        $currentUserId = $request->user()->id_user;
 
+        DB::beginTransaction();
         try {
-            // 2. Simpan ke tabel induk: 'skrining'
-            // Pastikan tabel 'skrining' kamu punya kolom user_id, total_skor, dan status
+            // A. Buat Header Skrining Dulu
             $skriningId = DB::table('skrining')->insertGetId([
-                'user_id'    => $request->user_id,
+                'user_id'    => $currentUserId,
                 'total_skor' => 0,
                 'status'     => 'proses',
                 'created_at' => now(),
@@ -35,20 +41,25 @@ class SkriningController extends Controller
 
             $totalSkor = 0;
             $skorMaksimal = 0;
+            
+            // Ambil nilai tertinggi sekali saja di luar loop untuk efisiensi
+            $nilaiTertinggi = DB::table('skala_jawaban')->max('nilai') ?? 4;
 
-            // Ambil nilai tertinggi dari tabel skala_jawaban secara dinamis
-            $nilaiTertinggi = DB::table('skala_jawaban')->max('nilai') ?? 1;
-
-            // 3. Simpan detail jawaban
+            // B. Looping Jawaban
             foreach ($request->jawaban as $item) {
                 $pertanyaan = DB::table('pertanyaan')->where('id', $item['pertanyaan_id'])->first();
                 $skala = DB::table('skala_jawaban')->where('id', $item['skala_id'])->first();
 
                 if ($pertanyaan && $skala) {
-                    $skorBaris = $pertanyaan->bobot * $skala->nilai;
+                    // Pakai bobot jika ada, kalau tidak ada default ke 1
+                    $bobot = $pertanyaan->bobot ?? 1;
+                    $skorBaris = $bobot * $skala->nilai;
+                    
                     $totalSkor += $skorBaris;
-                    $skorMaksimal += ($pertanyaan->bobot * $nilaiTertinggi);
+                    $skorMaksimal += ($bobot * $nilaiTertinggi);
 
+                    // Insert ke detail jawaban
+                    // PENTING: Hapus 'user_id' jika di migration tabel ini tidak ada kolom user_id
                     DB::table('jawaban_skrining')->insert([
                         'skrining_id'   => $skriningId,
                         'pertanyaan_id' => $pertanyaan->id,
@@ -60,18 +71,18 @@ class SkriningController extends Controller
                 }
             }
 
-            // 4. Hitung Status Berdasarkan Persentase (0-100%)
+            // C. Hitung Status Berdasarkan Persentase
             $persentase = ($skorMaksimal > 0) ? ($totalSkor / $skorMaksimal) * 100 : 0;
             
-            if ($persentase <= 33) {
-                $status = 'Rendah';
-            } elseif ($persentase <= 66) {
-                $status = 'Sedang';
-            } else {
-                $status = 'Tinggi';
+            if ($persentase <= 33) { 
+                $status = 'Rendah'; 
+            } elseif ($persentase <= 66) { 
+                $status = 'Sedang'; 
+            } else { 
+                $status = 'Tinggi'; 
             }
 
-            // 5. Update hasil akhir ke tabel 'skrining'
+            // D. Update Header dengan Hasil Akhir
             DB::table('skrining')->where('id', $skriningId)->update([
                 'total_skor' => $totalSkor,
                 'status'     => $status,
@@ -90,7 +101,9 @@ class SkriningController extends Controller
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal simpan gess: ' . $e->getMessage()
+                'message' => 'Detail Error: ' . $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile()
             ], 500);
         }
     }

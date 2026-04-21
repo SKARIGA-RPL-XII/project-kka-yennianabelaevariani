@@ -148,12 +148,12 @@ const HealthMate = () => {
       className={`min-h-screen font-sans antialiased overflow-x-hidden relative ${isDarkMode ? "bg-[#020817]" : "bg-[#f8fbff]"}`}
     >
       {/* Mode Toggle Button */}
-      <button
+      {/* <button
         onClick={() => setIsDarkMode(!isDarkMode)}
         className="fixed bottom-8 right-8 z-[100] p-4 rounded-full shadow-2xl bg-blue-600 text-white"
       >
         {isDarkMode ? "☀️" : "🌙"}
-      </button>
+      </button> */}
 
       <div
         className={`absolute top-0 left-0 w-full h-[1000px] -z-10 ${isDarkMode ? "opacity-20 bg-gradient-to-b from-blue-900 to-transparent" : "opacity-100 bg-gradient-to-b from-blue-50/50 to-transparent"}`}

@@ -35,13 +35,14 @@ const Chatbot = () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token")?.replace(/"/g, "");
+      const rawToken = localStorage.getItem("token");
+      const cleanToken = rawToken ? rawToken.replace(/"/g, "") : "";
 
       const response = await axios.post(
         "http://127.0.0.1:8000/api/chatbot",
         {
           message: userMessage.text,
-          history: newMessages,
+          history: messages,
         },
 
         // disini tambahin headers buat mengatasi di block oleh CORS
@@ -60,6 +61,7 @@ const Chatbot = () => {
 
       setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
+      console.error("Chatbot Error:", error);
       setMessages((prev) => [
         ...prev,
         {
@@ -144,7 +146,7 @@ const Chatbot = () => {
           </div>
 
           {/* SIDEBAR RIWAYAT */}
-          <div className="w-80 bg-white rounded-[25px] p-6 shadow-sm">
+          {/* <div className="w-80 bg-white rounded-[25px] p-6 shadow-sm">
             <h3 className="text-lg font-bold text-slate-800 mb-4">
               Riwayat Chat
             </h3>
@@ -168,7 +170,7 @@ const Chatbot = () => {
                 </p>
               )}
             </div>
-          </div>
+          </div> */}
         </div>
       </main>
     </div>

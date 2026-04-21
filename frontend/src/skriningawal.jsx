@@ -25,7 +25,7 @@ const SkriningAwal = () => {
 
       <main className="mx-auto px-28 py-12 flex flex-col items-center">
         {/* Header Section */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-20">
           <h2 className="text-5xl font-bold text-[#1e40af] mb-4">
             Skrining Kesehatan Awal
           </h2>

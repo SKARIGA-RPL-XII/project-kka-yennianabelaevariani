@@ -1,266 +1,228 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from "react";
 import Sidebar from "./component/sidebar";
 import {
   Search,
-  TrendingUp,
-  CheckCircle2,
+  Bell,
+  ChevronDown,
+  BookOpen,
+  Activity,
   AlertCircle,
-  XCircle,
-  Loader2,
+  Lightbulb,
+  PhoneCall,
+  Phone,
+  HeartPulse,
+  Stethoscope,
 } from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
 
 const AdminDashboard = () => {
-  const [loading, setLoading] = useState(true);
-  const [statsData, setStatsData] = useState([]);
-  const [lineData, setLineData] = useState([]);
-  const [pieData, setPieData] = useState([]);
+  // --- STATE UNTUK TIPS SEHAT (Interaktif Front-End Only) ---
+  const [currentTipIndex, setCurrentTipIndex] = useState(0);
 
-  // Fungsi untuk mengambil data dinamis dari backend
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      // Sesuaikan URL ini dengan endpoint API Laravel kamu gess
-      const response = await axios.get(
-        "http://localhost:8000/api/admin/dashboard-stats",
-      );
-      const { stats, userGrowth, riskDistribution } = response.data;
+  const allHealthTips = [
+    {
+      text: '"Minum air putih minimal 2 liter sehari dapat meningkatkan konsentrasi dan metabolisme tubuh hingga 30%."',
+      icon: (
+        <Lightbulb className="absolute -right-2 -bottom-2 w-24 h-24 text-white/10" />
+      ),
+    },
+    {
+      text: '"Jalan kaki ringan selama 30 menit setiap hari dapat membantu menjaga kesehatan jantung dan menurunkan risiko stroke."',
+      icon: (
+        <Activity className="absolute -right-2 -bottom-2 w-24 h-24 text-white/10" />
+      ),
+    },
+    {
+      text: '"Konsumsi sayuran berdaun hijau gelap secara teratur dapat meningkatkan asupan zat besi dan vitamin K."',
+      icon: (
+        <HeartPulse className="absolute -right-2 -bottom-2 w-24 h-24 text-white/10" />
+      ),
+    },
+  ];
 
-      // Mapping warna gradient untuk kartu statistik
-      const mappedStats = stats.map((item, idx) => {
-        const colors = [
-          "from-teal-400 to-teal-500",
-          "from-blue-400 to-blue-500",
-          "from-orange-400 to-orange-500",
-        ];
-        return { ...item, color: colors[idx] || "from-blue-400 to-blue-500" };
-      });
-
-      setStatsData(mappedStats);
-      setLineData(userGrowth);
-
-      // Mapping data resiko untuk Pie Chart beserta icon pendukungnya
-      const mappedRisk = riskDistribution.map((item) => {
-        let config = {
-          color: "#22C55E",
-          icon: <CheckCircle2 size={16} className="text-green-500" />,
-        };
-
-        if (item.name.toLowerCase().includes("sedang")) {
-          config = {
-            color: "#FACC15",
-            icon: <AlertCircle size={16} className="text-yellow-500" />,
-          };
-        } else if (item.name.toLowerCase().includes("tinggi")) {
-          config = {
-            color: "#EF4444",
-            icon: <XCircle size={16} className="text-red-500" />,
-          };
-        }
-
-        return { ...item, ...config };
-      });
-
-      setPieData(mappedRisk);
-    } catch (error) {
-      console.error("Gagal load data dashboard:", error);
-    } finally {
-      setLoading(false);
-    }
+  const updateTip = () => {
+    setCurrentTipIndex((prevIndex) => (prevIndex + 1) % allHealthTips.length);
   };
 
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex min-h-screen bg-[#F8FAFF]">
-        <Sidebar />
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <Loader2 className="animate-spin text-blue-600 mb-4" size={48} />
-          <p className="text-blue-400 font-bold italic">
-            Sabar gess, lagi tarik data asli...
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const currentTip = allHealthTips[currentTipIndex];
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFF]">
       <Sidebar />
 
       <main className="flex-1 p-10">
+        {/* --- Header --- */}
         <header className="flex items-center justify-between mb-10">
           <div className="relative w-96">
-            <Search
+            {/* <Search
               className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300"
               size={18}
-            />
-            <input
+            /> */}
+            {/* <input
               type="text"
-              placeholder="Cari statistik atau data..."
+              placeholder="Cari referensi medis..."
               className="w-full bg-white border border-blue-50 rounded-2xl py-3 px-12 focus:outline-none focus:ring-2 focus:ring-blue-100 transition-all shadow-sm italic text-sm"
-            />
+            /> */}
+          </div>
+
+          <div className="flex items-center gap-6">
+            {/* <button className="relative p-2 text-blue-400 bg-white rounded-xl shadow-sm border border-blue-50">
+              <Bell size={20} />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+            </button> */}
+            {/* <div className="flex items-center gap-3 pl-6 border-l border-blue-100">
+              <div className="text-right">
+                <p className="text-sm font-bold text-blue-900">Administrator</p>
+                <p className="text-[10px] font-semibold text-blue-400 uppercase tracking-wider">
+                  Super Admin
+                </p>
+              </div>
+              <img
+                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
+                className="w-10 h-10 rounded-xl bg-blue-100 border border-blue-50"
+                alt="Profile"
+              />
+              <ChevronDown size={16} className="text-blue-300" />
+            </div> */}
           </div>
         </header>
 
+        {/* --- Welcome Section --- */}
         <section className="mb-10">
           <h2 className="text-3xl font-bold text-blue-900 mb-2">
-            Selamat datang, Admin! 👋
+            Panel Edukasi HealthMate
           </h2>
           <p className="text-blue-400 font-medium text-lg">
-            Ringkasan statistik dan aktivitas terbaru dari sistem hari ini.
+            Referensi kesehatan statis untuk panduan admin hari ini.
           </p>
         </section>
 
-        {/* Stats Grid Dinamis */}
+        {/* --- Grid Utama (3 Kolom) --- */}
         <div className="grid grid-cols-3 gap-8 mb-10">
-          {statsData.map((item, idx) => (
-            <div
-              key={idx}
-              className="bg-white p-8 rounded-[35px] shadow-sm border border-blue-50 relative overflow-hidden group hover:shadow-xl hover:shadow-blue-100 transition-all duration-300"
+          {/* Kolom 1: Tips Sehat (Interaktif) */}
+          <div className="bg-teal-500 p-8 rounded-[40px] shadow-lg shadow-teal-100 text-white relative overflow-hidden flex flex-col justify-between min-h-[300px]">
+            {currentTip.icon}
+            <div>
+              <h4 className="font-bold text-xl mb-4">Tips Sehat</h4>
+              <p className="text-sm leading-relaxed font-medium mb-6">
+                {currentTip.text}
+              </p>
+            </div>
+            <button
+              onClick={updateTip}
+              className="self-start text-[10px] bg-white text-teal-600 font-black px-4 py-2 rounded-xl uppercase hover:bg-teal-50 transition-colors shadow-sm"
             >
-              <div
-                className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${item.color} opacity-5 -mr-10 -mt-10 rounded-full`}
-              ></div>
-              <p className="text-blue-400 font-bold mb-4">{item.label}</p>
-              <div className="flex items-end justify-between">
-                <h3 className="text-4xl font-black text-blue-900">
-                  {item.value.toLocaleString()}{" "}
-                  <span className="text-sm font-normal text-blue-300">
-                    {item.unit || "Data"}
-                  </span>
-                </h3>
-                <div className="flex items-center gap-1 text-green-500 text-sm font-bold bg-green-50 px-3 py-1 rounded-full">
-                  <TrendingUp size={14} /> {item.trend}
+              Ganti Tips
+            </button>
+          </div>
+
+          {/* Kolom 2: Panduan P3K Cepat */}
+          <div className="bg-gradient-to-br from-rose-500 to-red-600 p-8 rounded-[40px] shadow-lg shadow-red-100 text-white relative overflow-hidden flex flex-col justify-between">
+            <div className="relative z-10">
+              <h4 className="font-bold text-xl mb-4 flex items-center gap-2">
+                <AlertCircle size={22} /> Panduan P3K
+              </h4>
+              <div className="space-y-4">
+                <div className="bg-white/10 p-4 rounded-2xl border border-white/20">
+                  <p className="text-[10px] font-black uppercase tracking-wider opacity-80 mb-1">
+                    Luka Bakar
+                  </p>
+                  <p className="text-xs font-medium">
+                    Siram dengan air mengalir 20 menit. Hindari odol/mentega.
+                  </p>
+                </div>
+                <div className="bg-white/10 p-4 rounded-2xl border border-white/20">
+                  <p className="text-[10px] font-black uppercase tracking-wider opacity-80 mb-1">
+                    Mimisan
+                  </p>
+                  <p className="text-xs font-medium">
+                    Duduk tegak, condongkan tubuh ke depan, jepit hidung 10
+                    menit.
+                  </p>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-3 gap-8">
-          {/* Line Chart Dinamis */}
-          <div className="col-span-2 bg-white p-8 rounded-[35px] shadow-sm border border-blue-50">
-            <h4 className="text-xl font-bold text-blue-900 mb-8">
-              Grafik Pengguna Baru
-            </h4>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={lineData}>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    vertical={false}
-                    stroke="#F1F5F9"
-                  />
-                  <XAxis
-                    dataKey="name"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#94A3B8", fontSize: 10 }}
-                    dy={10}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "#94A3B8", fontSize: 10 }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: "20px",
-                      border: "none",
-                      boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
-                    }}
-                  />
-                  <Legend
-                    verticalAlign="bottom"
-                    height={36}
-                    iconType="circle"
-                  />
-                  {lineData.length > 0 &&
-                    Object.keys(lineData[0])
-                      .filter((k) => k !== "name")
-                      .map((key, i) => (
-                        <Line
-                          key={key}
-                          type="monotone"
-                          dataKey={key}
-                          stroke={
-                            i === 0
-                              ? "#4ADE80"
-                              : i === 1
-                                ? "#FACC15"
-                                : "#F87171"
-                          }
-                          strokeWidth={3}
-                          dot={{ r: 4, strokeWidth: 2, fill: "#fff" }}
-                          activeDot={{ r: 6 }}
-                        />
-                      ))}
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+            <Stethoscope className="absolute -right-4 -bottom-4 w-32 h-32 text-white/10" />
           </div>
 
-          {/* Pie Chart Dinamis */}
-          <div className="bg-white p-8 rounded-[35px] shadow-sm border border-blue-50 flex flex-col items-center">
-            <h4 className="text-lg font-bold text-blue-900 mb-4 w-full text-left">
-              Distribusi Risiko
+          {/* Kolom 3: Kontak Darurat */}
+          <div className="bg-white p-8 rounded-[40px] shadow-sm border border-blue-50 flex flex-col">
+            <h4 className="font-bold text-blue-900 text-xl mb-6 flex items-center gap-2">
+              <PhoneCall size={22} className="text-blue-500" /> Kontak Darurat
             </h4>
-            <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={8}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.color}
-                        cornerRadius={10}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ borderRadius: "15px", border: "none" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="w-full space-y-4 mt-4">
-              {pieData.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {item.icon}
-                    <span className="text-sm font-bold text-blue-900">
-                      {item.name}
-                    </span>
-                  </div>
-                  <span className="text-sm font-bold text-slate-400">
-                    {item.value}%
-                  </span>
+            <div className="space-y-4 flex-1">
+              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                <div>
+                  <p className="text-[10px] font-bold text-blue-400 uppercase">
+                    Ambulans
+                  </p>
+                  <p className="text-base font-black text-blue-900">
+                    118 / 119
+                  </p>
                 </div>
-              ))}
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-500 shadow-sm">
+                  <Phone size={18} />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                <div>
+                  <p className="text-[10px] font-bold text-blue-400 uppercase">
+                    Hotline Kemenkes
+                  </p>
+                  <p className="text-base font-black text-blue-900">1500-567</p>
+                </div>
+                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-blue-500 shadow-sm">
+                  <Phone size={18} />
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 p-4 bg-blue-900 rounded-2xl text-center">
+              <p className="text-[10px] font-bold text-white uppercase tracking-widest">
+                Layanan 24 Jam
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* --- Bagian Bawah: Glosarium (Full Width) --- */}
+        <div className="bg-white p-10 rounded-[40px] shadow-sm border border-blue-50">
+          <div className="flex justify-between items-center mb-8">
+            <h4 className="font-bold text-blue-900 text-xl flex items-center gap-2">
+              <BookOpen size={24} className="text-blue-500" /> Glosarium Medis
+              Sederhana
+            </h4>
+            <span className="text-[10px] font-bold text-blue-300 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full">
+              Data Statis
+            </span>
+          </div>
+
+          <div className="grid grid-cols-3 gap-6">
+            <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-50 hover:bg-white hover:shadow-md transition-all group">
+              <h5 className="text-base font-bold text-blue-900 group-hover:text-blue-600">
+                Anemia
+              </h5>
+              <p className="text-sm text-blue-500 mt-2 leading-relaxed">
+                Kondisi ketika tubuh kekurangan sel darah merah yang sehat untuk
+                mengalirkan oksigen.
+              </p>
+            </div>
+            <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-50 hover:bg-white hover:shadow-md transition-all group">
+              <h5 className="text-base font-bold text-blue-900 group-hover:text-blue-600">
+                Hipertensi
+              </h5>
+              <p className="text-sm text-blue-500 mt-2 leading-relaxed">
+                Kondisi medis kronis di mana tekanan darah di arteri meningkat
+                secara persisten.
+              </p>
+            </div>
+            <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-50 hover:bg-white hover:shadow-md transition-all group">
+              <h5 className="text-base font-bold text-blue-900 group-hover:text-blue-600">
+                Kolesterol
+              </h5>
+              <p className="text-sm text-blue-500 mt-2 leading-relaxed">
+                Lemak yang diproduksi oleh tubuh dan ditemukan di makanan
+                hewani, penting dalam kadar normal.
+              </p>
             </div>
           </div>
         </div>

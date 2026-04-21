@@ -23,15 +23,22 @@ Route::put('/kategori/{id}', [KategoriController::class, 'update']);
 Route::delete('/kategori/{id}', [KategoriController::class, 'destroy']);
 
 // Bungkus dengan middleware sanctum agar auth()->id() bisa terbaca
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/chatbot', [ChatbotController::class, 'chat']);
     Route::get('/chatbot/history', [ChatbotController::class, 'history']);
+    Route::post('/skrining', [SkriningController::class, 'store']); 
 });
 
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::post('/skrining', [SkriningController::class, 'store']);
+Route::get('/test', function () {
+    return response()->json([
+        'message' => 'API jalan'
+    ]);
+});
+
 Route::get('/pertanyaan', [PertanyaanController::class, 'index']);
 Route::apiResource('/pertanyaanskrining', PertanyaanSkriningController::class);
 

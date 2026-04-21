@@ -59,9 +59,18 @@ const SkriningGejala = () => {
   // submit
   const handleSubmit = async () => {
     setLoading(true);
+
+  const token = localStorage.getItem("token");
+  
+  if (!token) {
+    alert("Sesi berakhir, silakan login kembali gess.");
+    navigate("/login");
+    return;
+  }
+
     try {
       const payload = {
-        user_id: 1,
+        // user_id: 2, 
         jawaban: questions.map((q, idx) => ({
           pertanyaan_id: q.id,
           skala_id: skalaMap[answers[idx]],
@@ -71,7 +80,15 @@ const SkriningGejala = () => {
       const res = await axios.post(
         "http://localhost:8000/api/skrining",
         payload,
+        {
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
+
+      console.log("ada apa disini: ", res.data);
 
       // ⬇️ pindah halaman + kirim data
       navigate("/hasilskrining", {
@@ -82,9 +99,15 @@ const SkriningGejala = () => {
       });
     } catch (err) {
       alert("Terjadi kesalahan saat mengirim data skrining");
-    } finally {
+      console.log("njir error dong: ", err);
+      if (err.response) {
+        console.log("Test backend: ", err.response.data);
+      } else {
+        console.log("aman ga: ", err.message);
+      }
+    } /*finally {
       setLoading(false);
-    }
+    }*/
   };
 
   return (

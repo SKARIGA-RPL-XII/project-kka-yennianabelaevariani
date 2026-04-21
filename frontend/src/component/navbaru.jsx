@@ -43,12 +43,12 @@ const Navbar = () => {
         >
           Skrining
         </Link>
-        <Link
+        {/* <Link
           to="/r"
           className="text-gray-500 font-medium hover:text-blue-500 transition"
         >
           Riwayat
-        </Link>
+        </Link> */}
 
         {/* Profile Avatar */}
         <Link

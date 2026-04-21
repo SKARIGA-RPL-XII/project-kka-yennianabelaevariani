@@ -10,36 +10,36 @@ use App\Models\User;
 class AuthController extends Controller
 {
    // app/Http/Controllers/Api/AuthController.php
-public function register(Request $request)
-    {
-        try {
-            // Validasi data
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|email|max:255|unique:users',
-                'password' => 'required|string|min:8',
-            ]);
+// public function register(Request $request)
+//     {
+//         try {
+//             // Validasi data
+//             $request->validate([
+//                 'nama' => 'required|string|max:255',
+//                 'email' => 'required|string|email|max:255|unique:users',
+//                 'password' => 'required|string|min:8',
+//             ]);
 
-            // Simpan ke database
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password), // Enkripsi password
-            ]);
+//             // Simpan ke database
+//             $user = User::create([
+//                 'nama' => $request->nama,
+//                 'email' => $request->email,
+//                 'password' => Hash::make($request->password), // Enkripsi password
+//             ]);
 
-            return response()->json([
-                'message' => 'User berhasil didaftarkan',
-                'user' => $user
-            ], 201);
+//             return response()->json([
+//                 'message' => 'User berhasil didaftarkan',
+//                 'user' => $user
+//             ], 201);
 
-        } catch (\Exception $e) {
-            // Ini akan membantu kamu melihat error aslinya di log jika masih gagal
-            return response()->json([
-                'message' => 'Terjadi kesalahan server',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
+//         } catch (\Exception $e) {
+//             // Ini akan membantu kamu melihat error aslinya di log jika masih gagal
+//             return response()->json([
+//                 'message' => 'Terjadi kesalahan server',
+//                 'error' => $e->getMessage()
+//             ], 500);
+//         }
+//     }
 
     public function login(Request $request)
     {
@@ -57,11 +57,12 @@ public function register(Request $request)
         }
 
         // kirim token jika success login
+        // dd($user->createToken('auth_token'));
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'user' => $user,
             'token' => $token // kirim ini 
-        ], 200);
+        ], 201);
     }
 }   

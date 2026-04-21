@@ -19,6 +19,7 @@ const ManajemenPertanyaan = () => {
   const [questions, setQuestions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false); // State untuk loading tombol hapus/simpan
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua Kategori");
 
@@ -95,29 +96,26 @@ const ManajemenPertanyaan = () => {
     }
 
     try {
+      setIsProcessing(true);
       const payload = {
         ...formData,
         is_darurat: formData.is_darurat ? 1 : 0,
       };
 
       if (isEditMode) {
-        await axios.put(
-          `http://localhost:8000/api/pertanyaanskrining/${editId}`,
-          payload,
-        );
+        await axios.put(`http://localhost:8000/api/pertanyaanskrining/${editId}`, payload);
         alert("Pertanyaan berhasil diperbarui!");
       } else {
-        await axios.post(
-          "http://localhost:8000/api/pertanyaanskrining",
-          payload,
-        );
+        await axios.post("http://localhost:8000/api/pertanyaanskrining", payload);
         alert("Pertanyaan baru berhasil ditambahkan!");
       }
       setIsModalOpen(false);
       fetchData();
     } catch (err) {
       console.error(err);
-      alert("Gagal menyimpan data gess.");
+      alert(err.response?.data?.message || "Gagal menyimpan data gess.");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -126,12 +124,15 @@ const ManajemenPertanyaan = () => {
     if (!id) return;
     if (window.confirm("Hapus pertanyaan ini dari sistem?")) {
       try {
-        await axios.delete(
-          `http://localhost:8000/api/pertanyaanskrining/${id}`,
-        );
+        setIsProcessing(true);
+        const res = await axios.delete(`http://localhost:8000/api/pertanyaanskrining/${id}`);
+        alert(res.data.message || "Data berhasil dihapus!");
         fetchData();
       } catch (err) {
-        alert("Gagal menghapus pertanyaan. Periksa koneksi atau ID data.");
+        const msg = err.response?.data?.message || "Gagal menghapus pertanyaan.";
+        alert(msg);
+      } finally {
+        setIsProcessing(false);
       }
     }
   };
@@ -140,34 +141,51 @@ const ManajemenPertanyaan = () => {
   const handleBulkDelete = async () => {
     if (
       window.confirm(
-        `Yakin ingin menghapus ${selectedItems.length} pertanyaan sekaligus?`,
+        `Yakin ingin menghapus ${selectedItems.length} data sekaligus?`,
       )
     ) {
       try {
-        await Promise.all(
-          selectedItems.map((id) =>
-            axios.delete(`http://localhost:8000/api/pertanyaanskrining/${id}`),
-          ),
+        setIsProcessing(true);
+
+        // Mengirim satu request saja dengan membawa array ID
+        const res = await axios.post(
+          "http://localhost:8000/api/pertanyaanskrining/bulk-delete",
+          {
+            ids: selectedItems,
+          },
         );
-        alert("Berhasil menghapus banyak data!");
-        fetchData();
+
+        alert(res.data.message);
+        fetchData(); // Refresh data
+        setSelectedItems([]); // Reset checkbox
       } catch (err) {
-        alert("Gagal menghapus beberapa pertanyaan.");
+        console.error(err);
+        alert(
+          err.response?.data?.message ||
+            "Terjadi kesalahan saat menghapus data.",
+        );
+      } finally {
+        setIsProcessing(false);
       }
     }
   };
 
   const toggleSelectAll = () => {
-    if (selectedItems.length === currentQuestions.length) {
-      setSelectedItems([]);
+    // Jika semua item di HALAMAN INI sudah terpilih, maka kosongkan
+    const currentIds = currentQuestions.map((q) => q.id);
+    const isAllSelected = currentIds.every((id) => selectedItems.includes(id));
+
+    if (isAllSelected) {
+      setSelectedItems((prev) => prev.filter((id) => !currentIds.includes(id)));
     } else {
-      setSelectedItems(currentQuestions.map((q) => q.id));
+      // Tambahkan hanya ID yang ada di halaman ini ke list terpilih
+      setSelectedItems((prev) => [...new Set([...prev, ...currentIds])]);
     }
   };
 
   const handleCheckboxChange = (id) => {
     setSelectedItems((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
@@ -187,10 +205,7 @@ const ManajemenPertanyaan = () => {
   // Logic Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentQuestions = filteredQuestions.slice(
-    indexOfFirstItem,
-    indexOfLastItem,
-  );
+  const currentQuestions = filteredQuestions.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
 
   useEffect(() => {
@@ -216,9 +231,15 @@ const ManajemenPertanyaan = () => {
             {selectedItems.length > 0 && (
               <button
                 onClick={handleBulkDelete}
-                className="flex items-center gap-2 bg-red-500 text-white px-6 py-3 rounded-2xl font-bold hover:bg-red-600 transition shadow-lg shadow-red-100"
+                disabled={isProcessing}
+                className="flex items-center gap-2 bg-red-500 text-white px-6 py-3 rounded-2xl font-bold hover:bg-red-600 transition shadow-lg shadow-red-100 disabled:opacity-50"
               >
-                <Trash2 size={20} /> Hapus ({selectedItems.length})
+                {isProcessing ? (
+                  <Loader2 className="animate-spin" size={20} />
+                ) : (
+                  <Trash2 size={20} />
+                )}
+                Hapus ({selectedItems.length})
               </button>
             )}
             <button
@@ -267,7 +288,12 @@ const ManajemenPertanyaan = () => {
                 Kasus Darurat
               </p>
               <p className="text-xl font-bold text-blue-900">
-                {questions.filter((q) => q.is_darurat).length} Pertanyaan
+                {
+                  questions.filter(
+                    (q) => q.is_darurat === 1 || q.is_darurat === true,
+                  ).length
+                }{" "}
+                Pertanyaan
               </p>
             </div>
           </div>
@@ -288,7 +314,6 @@ const ManajemenPertanyaan = () => {
               className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-3 px-12 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium"
             />
           </div>
-          {/* PERBAIKAN: Padding right ditingkatkan agar panah tidak mepet */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -324,7 +349,9 @@ const ManajemenPertanyaan = () => {
                           className="w-4 h-4 rounded border-blue-200 text-blue-600 focus:ring-blue-500 cursor-pointer"
                           checked={
                             currentQuestions.length > 0 &&
-                            selectedItems.length === currentQuestions.length
+                            currentQuestions.every((q) =>
+                              selectedItems.includes(q.id),
+                            )
                           }
                           onChange={toggleSelectAll}
                         />
@@ -462,7 +489,6 @@ const ManajemenPertanyaan = () => {
               </p>
 
               <div className="space-y-5">
-                {/* Pilih Kategori */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-blue-900 uppercase tracking-widest ml-1">
                     Kategori
@@ -483,7 +509,6 @@ const ManajemenPertanyaan = () => {
                   </select>
                 </div>
 
-                {/* Teks Pertanyaan */}
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-blue-900 uppercase tracking-widest ml-1">
                     Teks Pertanyaan
@@ -502,7 +527,6 @@ const ManajemenPertanyaan = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Bobot */}
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-blue-900 uppercase tracking-widest ml-1">
                       Bobot (1-4)
@@ -518,14 +542,13 @@ const ManajemenPertanyaan = () => {
                         setFormData({
                           ...formData,
                           bobot: safeVal,
-                          is_darurat: safeVal === 4, // SYNC: Jika 4 maka darurat
+                          is_darurat: safeVal === 4,
                         });
                       }}
                       className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-blue-900"
                     />
                   </div>
 
-                  {/* Is Darurat */}
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-blue-900 uppercase tracking-widest ml-1">
                       Tingkat Bahaya
@@ -540,7 +563,7 @@ const ManajemenPertanyaan = () => {
                             ? 4
                             : formData.bobot === 4
                               ? 3
-                              : formData.bobot, // SYNC: Jika darurat maka bobot 4
+                              : formData.bobot,
                         });
                       }}
                       className={`flex items-center justify-center gap-2 py-4 px-6 rounded-2xl border cursor-pointer transition-all font-bold 
@@ -555,14 +578,19 @@ const ManajemenPertanyaan = () => {
                 <div className="grid grid-cols-2 gap-4 pt-4">
                   <button
                     onClick={() => setIsModalOpen(false)}
-                    className="py-4 rounded-2xl font-bold text-blue-400 hover:bg-blue-50 transition"
+                    disabled={isProcessing}
+                    className="py-4 rounded-2xl font-bold text-blue-400 hover:bg-blue-50 transition disabled:opacity-50"
                   >
                     Batalkan
                   </button>
                   <button
                     onClick={handleSave}
-                    className="py-4 bg-[#1e40af] text-white rounded-2xl font-bold hover:bg-blue-800 shadow-lg shadow-blue-100 transition"
+                    disabled={isProcessing}
+                    className="py-4 bg-[#1e40af] text-white rounded-2xl font-bold hover:bg-blue-800 shadow-lg shadow-blue-100 transition flex items-center justify-center gap-2"
                   >
+                    {isProcessing && (
+                      <Loader2 className="animate-spin" size={18} />
+                    )}
                     {isEditMode ? "Simpan Perubahan" : "Simpan Pertanyaan"}
                   </button>
                 </div>

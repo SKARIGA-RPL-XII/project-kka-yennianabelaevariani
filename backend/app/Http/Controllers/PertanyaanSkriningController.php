@@ -34,10 +34,6 @@ class PertanyaanSkriningController extends Controller
      */
     public function store(Request $request)
     {
-        return response()->json([
-        'debug_data' => $request->all(),
-        'message' => 'Laravel menerima data kamu gess!'
-         ]);
         $validator = Validator::make($request->all(), [
             'kategori_id'     => 'required|exists:kategori,id',
             'teks_pertanyaan' => 'required',
@@ -87,7 +83,7 @@ class PertanyaanSkriningController extends Controller
             'teks_pertanyaan' => 'required',
             'bobot'           => 'required|integer',
             'is_darurat'      => 'required|boolean'
-        ]); 
+        ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
@@ -106,17 +102,66 @@ class PertanyaanSkriningController extends Controller
      * Hapus pertanyaan
      */
     public function destroy($id)
-    {
-        $pertanyaan = Pertanyaan::find($id);
+{
+    $pertanyaan = Pertanyaan::find($id);
 
-        if ($pertanyaan) {
-            $pertanyaan->delete();
-            return response()->json([
-                'success' => true,
-                'message' => 'Pertanyaan berhasil dihapus!'
-            ], 200);
-        }
-
+    if (!$pertanyaan) {
         return response()->json(['message' => 'Data tidak ditemukan'], 404);
     }
+
+    // Cek apakah pertanyaan ini sudah punya jawaban di tabel jawaban_skrining
+    // Asumsi nama tabel di DB adalah 'jawaban_skrining'
+    $sudahDijawab = \DB::table('jawaban_skrining')
+        ->where('pertanyaan_id', $id)
+        ->exists();
+
+    if ($sudahDijawab) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Pertanyaan tidak bisa dihapus karena sudah pernah dijawab oleh pengguna. Silakan nonaktifkan saja jika sudah tidak digunakan.'
+        ], 422); // Gunakan status code 422 (Unprocessable Entity)
+    }
+
+    $pertanyaan->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Pertanyaan berhasil dihapus!'
+    ], 200);
+}
+
+   public function bulkDestroy(Request $request)
+{
+    $ids = $request->ids;
+    $canDelete = [];
+    $cannotDeleteCount = 0;
+
+    foreach ($ids as $id) {
+        $sudahDijawab = \DB::table('jawaban_skrining')
+            ->where('pertanyaan_id', $id)
+            ->exists();
+
+        if (!$sudahDijawab) {
+            $canDelete[] = $id;
+        } else {
+            $cannotDeleteCount++;
+        }
+    }
+
+    if (count($canDelete) > 0) {
+        Pertanyaan::whereIn('id', $canDelete)->delete();
+    }
+
+    if ($cannotDeleteCount > 0) {
+        return response()->json([
+            'success' => true,
+            'message' => count($canDelete) . " data berhasil dihapus, tetapi $cannotDeleteCount data gagal dihapus karena sudah memiliki riwayat jawaban."
+        ], 200);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Semua data terpilih berhasil dihapus!'
+    ], 200);
+}
 }
