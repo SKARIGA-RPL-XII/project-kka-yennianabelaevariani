@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "./component/navbaru";
 import { useNavigate } from "react-router-dom";
-
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 
 const QUESTIONS_PER_PAGE = 5;
+
 const SkriningGejala = () => {
   const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+
+  // State untuk Pesan Notifikasi
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const options = ["Tidak Pernah", "Jarang", "Sering", "Selalu"];
 
@@ -21,7 +27,6 @@ const SkriningGejala = () => {
     Selalu: 4,
   };
 
-  // 🔥 ambil pertanyaan dari backend
   useEffect(() => {
     axios
       .get("http://localhost:8000/api/pertanyaan")
@@ -31,6 +36,7 @@ const SkriningGejala = () => {
       })
       .catch((err) => {
         console.error("Gagal mengambil pertanyaan", err);
+        setError("Gagal mengambil data pertanyaan dari server.");
       });
   }, []);
 
@@ -46,7 +52,6 @@ const SkriningGejala = () => {
       ? Math.round((answeredCount / questions.length) * 100)
       : 0;
 
-  // pagination logic
   const startIndex = currentPage * QUESTIONS_PER_PAGE;
   const endIndex = startIndex + QUESTIONS_PER_PAGE;
   const currentQuestions = questions.slice(startIndex, endIndex);
@@ -56,21 +61,21 @@ const SkriningGejala = () => {
     (_, idx) => answers[startIndex + idx] !== null,
   );
 
-  // submit
   const handleSubmit = async () => {
     setLoading(true);
+    setError("");
+    setMessage("");
 
-  const token = localStorage.getItem("token");
-  
-  if (!token) {
-    alert("Sesi berakhir, silakan login kembali gess.");
-    navigate("/login");
-    return;
-  }
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("Sesi berakhir, silakan login kembali gess.");
+      setTimeout(() => navigate("/login"), 2000);
+      return;
+    }
 
     try {
       const payload = {
-        // user_id: 2, 
         jawaban: questions.map((q, idx) => ({
           pertanyaan_id: q.id,
           skala_id: skalaMap[answers[idx]],
@@ -88,46 +93,67 @@ const SkriningGejala = () => {
         },
       );
 
-      console.log("ada apa disini: ", res.data);
+      setMessage("Analisis berhasil dikirim! Mengalihkan...");
 
-      // ⬇️ pindah halaman + kirim data
-      navigate("/hasilskrining", {
-        state: {
-          status: res.data.status,
-          total_skor: res.data.total_skor,
-        },
-      });
+      setTimeout(() => {
+        navigate("/hasilskrining", {
+          state: {
+            status: res.data.status,
+            total_skor: res.data.total_skor,
+          },
+        });
+      }, 1500);
     } catch (err) {
-      alert("Terjadi kesalahan saat mengirim data skrining");
-      console.log("njir error dong: ", err);
-      if (err.response) {
-        console.log("Test backend: ", err.response.data);
-      } else {
-        console.log("aman ga: ", err.message);
-      }
-    } /*finally {
+      setError(
+        err.response?.data?.message ||
+          "Terjadi kesalahan saat mengirim data skrining",
+      );
       setLoading(false);
-    }*/
+    }
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans">
+    <div className="min-h-screen bg-white font-sans relative">
       <Navbar />
 
-      <main className="mx-auto px-28 py-8">
+      <main className="mx-auto px-28 py-8 relative z-10">
         <header className="mb-8">
           <h2 className="text-4xl font-bold text-blue-900 mb-2">
             Skrining Gejala
           </h2>
           <p className="text-[#60a5fa] max-w-3xl leading-relaxed">
-            Jawab pertanyaan ini dengan keadaan yang sebenarnya, hindari mengisi
-            jawaban berdasarkan perkiraan, keinginan, atau mengada-ada agar
-            hasil analisis tetap akurat.
+            Jawab pertanyaan ini dengan keadaan yang sebenarnya agar hasil
+            analisis tetap akurat.
           </p>
         </header>
 
-        <div className="bg-[#eff6ff] rounded-[40px] p-10 shadow-sm">
-          {/* progress */}
+        {/* --- NOTIFICATION AREA --- */}
+        <AnimatePresence>
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-6 p-4 bg-green-50 border border-green-100 text-green-600 rounded-2xl text-sm font-bold flex items-center gap-2 italic shadow-sm"
+            >
+              <CheckCircle2 size={18} /> {message}
+            </motion.div>
+          )}
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-2 italic shadow-sm"
+            >
+              <AlertCircle size={18} /> {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <div className="bg-[#eff6ff] rounded-[40px] p-10 shadow-sm border border-blue-50">
+          {/* progress bar */}
           <div className="flex items-center gap-6 mb-12">
             <div className="flex-1 h-5 bg-white rounded-full overflow-hidden p-1 shadow-inner">
               <div
@@ -136,11 +162,11 @@ const SkriningGejala = () => {
               ></div>
             </div>
             <span className="text-[#1e40af] font-bold text-sm min-w-[120px]">
-              {progress}% Belum Selesai
+              {progress}% Selesai
             </span>
           </div>
 
-          {/* questions */}
+          {/* questions container */}
           <div className="space-y-12">
             {currentQuestions.map((q, idx) => {
               const qIdx = startIndex + idx;
@@ -186,7 +212,7 @@ const SkriningGejala = () => {
             })}
           </div>
 
-          {/* navigation */}
+          {/* navigation buttons */}
           <div className="mt-16 flex justify-between items-center">
             <button
               disabled={currentPage === 0}
@@ -220,13 +246,21 @@ const SkriningGejala = () => {
                 onClick={handleSubmit}
                 className={`px-12 py-4 rounded-2xl font-bold text-lg transition-all shadow-xl
                   ${
-                    answeredCount === questions.length
+                    answeredCount === questions.length && !loading
                       ? "bg-[#1e40af] text-white hover:bg-blue-800 cursor-pointer shadow-blue-200"
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }
                 `}
               >
-                {loading ? "Mengirim..." : "Kirim Analisis"}
+                {loading ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1 }}
+                    className="w-6 h-6 border-2 border-white border-t-transparent rounded-full mx-auto"
+                  />
+                ) : (
+                  "Kirim Analisis"
+                )}
               </button>
             )}
           </div>

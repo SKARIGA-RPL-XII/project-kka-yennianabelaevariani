@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "./component/sidebar";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
   Plus,
@@ -19,11 +20,15 @@ const ManajemenPertanyaan = () => {
   const [questions, setQuestions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false); // State untuk loading tombol hapus/simpan
+  const [isProcessing, setIsProcessing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Semua Kategori");
 
-  // --- STATE UNTUK CHECKBOX (HAPUS MASAL) ---
+  // --- STATE NOTIFIKASI ---
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  // --- STATE UNTUK CHECKBOX ---
   const [selectedItems, setSelectedItems] = useState([]);
 
   // --- STATE UNTUK MODAL & CRUD ---
@@ -41,6 +46,17 @@ const ManajemenPertanyaan = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
+  // Helper Toast
+  const showToast = (msg, type = "success") => {
+    if (type === "success") {
+      setMessage(msg);
+      setTimeout(() => setMessage(""), 3000);
+    } else {
+      setError(msg);
+      setTimeout(() => setError(""), 3000);
+    }
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -50,10 +66,10 @@ const ManajemenPertanyaan = () => {
       ]);
       setQuestions(resQuestions.data.data || []);
       setCategories(resCategories.data.data || []);
-      setSelectedItems([]); // Reset pilihan setelah fetch
+      setSelectedItems([]);
     } catch (err) {
       console.error("Gagal ambil data gess:", err);
-      setQuestions([]);
+      showToast("Gagal mengambil data dari server.", "error");
     } finally {
       setLoading(false);
     }
@@ -63,7 +79,6 @@ const ManajemenPertanyaan = () => {
     fetchData();
   }, []);
 
-  // --- FUNGSI OPEN MODAL (TAMBAH) ---
   const handleAddOpen = () => {
     setIsEditMode(false);
     setEditId(null);
@@ -76,7 +91,6 @@ const ManajemenPertanyaan = () => {
     setIsModalOpen(true);
   };
 
-  // --- FUNGSI OPEN MODAL (EDIT) ---
   const handleEditOpen = (q) => {
     setIsEditMode(true);
     setEditId(q.id);
@@ -89,10 +103,12 @@ const ManajemenPertanyaan = () => {
     setIsModalOpen(true);
   };
 
-  // --- FUNGSI SIMPAN (STORE & UPDATE) ---
   const handleSave = async () => {
     if (!formData.kategori_id || !formData.teks_pertanyaan) {
-      return alert("Kategori dan Teks Pertanyaan wajib diisi gess!");
+      return showToast(
+        "Kategori dan Teks Pertanyaan wajib diisi gess!",
+        "error",
+      );
     }
 
     try {
@@ -103,41 +119,48 @@ const ManajemenPertanyaan = () => {
       };
 
       if (isEditMode) {
-        await axios.put(`http://localhost:8000/api/pertanyaanskrining/${editId}`, payload);
-        alert("Pertanyaan berhasil diperbarui!");
+        await axios.put(
+          `http://localhost:8000/api/pertanyaanskrining/${editId}`,
+          payload,
+        );
+        showToast("Pertanyaan berhasil diperbarui secara aman! ✨");
       } else {
-        await axios.post("http://localhost:8000/api/pertanyaanskrining", payload);
-        alert("Pertanyaan baru berhasil ditambahkan!");
+        await axios.post(
+          "http://localhost:8000/api/pertanyaanskrining",
+          payload,
+        );
+        showToast("Pertanyaan baru berhasil ditambahkan! ✨");
       }
       setIsModalOpen(false);
       fetchData();
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Gagal menyimpan data gess.");
+      showToast(
+        err.response?.data?.message || "Gagal menyimpan data gess.",
+        "error",
+      );
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // --- FUNGSI HAPUS SATUAN ---
   const handleDelete = async (id) => {
     if (!id) return;
     if (window.confirm("Hapus pertanyaan ini dari sistem?")) {
       try {
         setIsProcessing(true);
-        const res = await axios.delete(`http://localhost:8000/api/pertanyaanskrining/${id}`);
-        alert(res.data.message || "Data berhasil dihapus!");
+        await axios.delete(
+          `http://localhost:8000/api/pertanyaanskrining/${id}`,
+        );
+        showToast("Pertanyaan berhasil dihapus!");
         fetchData();
       } catch (err) {
-        const msg = err.response?.data?.message || "Gagal menghapus pertanyaan.";
-        alert(msg);
+        showToast("Gagal menghapus pertanyaan.", "error");
       } finally {
         setIsProcessing(false);
       }
     }
   };
 
-  // --- FUNGSI HAPUS MASAL ---
   const handleBulkDelete = async () => {
     if (
       window.confirm(
@@ -146,24 +169,17 @@ const ManajemenPertanyaan = () => {
     ) {
       try {
         setIsProcessing(true);
-
-        // Mengirim satu request saja dengan membawa array ID
         const res = await axios.post(
           "http://localhost:8000/api/pertanyaanskrining/bulk-delete",
           {
             ids: selectedItems,
           },
         );
-
-        alert(res.data.message);
-        fetchData(); // Refresh data
-        setSelectedItems([]); // Reset checkbox
+        showToast(res.data.message || "Data masal berhasil dihapus!");
+        fetchData();
+        setSelectedItems([]);
       } catch (err) {
-        console.error(err);
-        alert(
-          err.response?.data?.message ||
-            "Terjadi kesalahan saat menghapus data.",
-        );
+        showToast("Terjadi kesalahan saat menghapus data masal.", "error");
       } finally {
         setIsProcessing(false);
       }
@@ -171,25 +187,23 @@ const ManajemenPertanyaan = () => {
   };
 
   const toggleSelectAll = () => {
-    // Jika semua item di HALAMAN INI sudah terpilih, maka kosongkan
     const currentIds = currentQuestions.map((q) => q.id);
     const isAllSelected = currentIds.every((id) => selectedItems.includes(id));
 
     if (isAllSelected) {
       setSelectedItems((prev) => prev.filter((id) => !currentIds.includes(id)));
     } else {
-      // Tambahkan hanya ID yang ada di halaman ini ke list terpilih
       setSelectedItems((prev) => [...new Set([...prev, ...currentIds])]);
     }
   };
 
   const handleCheckboxChange = (id) => {
     setSelectedItems((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   };
 
-  // Logic Filter & Search
+  // Logic Filter
   const filteredQuestions = Array.isArray(questions)
     ? questions.filter((q) => {
         const matchSearch = (q.teks_pertanyaan || "")
@@ -202,10 +216,12 @@ const ManajemenPertanyaan = () => {
       })
     : [];
 
-  // Logic Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentQuestions = filteredQuestions.slice(indexOfFirstItem, indexOfLastItem);
+  const currentQuestions = filteredQuestions.slice(
+    indexOfFirstItem,
+    indexOfLastItem,
+  );
   const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
 
   useEffect(() => {
@@ -224,7 +240,7 @@ const ManajemenPertanyaan = () => {
               Manajemen Pertanyaan
             </h2>
             <p className="text-[#60a5fa] font-medium">
-              Atur daftar pertanyaan skrining, kategori, dan bobot penilaian.
+              Atur daftar pertanyaan skrining dan penilaian.
             </p>
           </div>
           <div className="flex gap-4">
@@ -250,6 +266,30 @@ const ManajemenPertanyaan = () => {
             </button>
           </div>
         </header>
+
+        {/* --- NOTIFIKASI ALA PROFILE --- */}
+        <AnimatePresence mode="wait">
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-8 p-4 bg-green-50 border border-green-100 text-green-600 rounded-2xl text-sm font-bold flex items-center gap-2 italic"
+            >
+              <span>✨</span> {message}
+            </motion.div>
+          )}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-2 italic"
+            >
+              <span>⚠️</span> {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Info Cards Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -328,7 +368,7 @@ const ManajemenPertanyaan = () => {
           </select>
         </div>
 
-        {/* Table Questions */}
+        {/* Table */}
         <div className="bg-white rounded-[40px] shadow-sm border border-blue-50 overflow-hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
@@ -346,7 +386,7 @@ const ManajemenPertanyaan = () => {
                       <th className="px-6 py-5 w-12 text-center">
                         <input
                           type="checkbox"
-                          className="w-4 h-4 rounded border-blue-200 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          className="w-4 h-4 rounded border-blue-200 text-blue-600 cursor-pointer"
                           checked={
                             currentQuestions.length > 0 &&
                             currentQuestions.every((q) =>
@@ -377,12 +417,12 @@ const ManajemenPertanyaan = () => {
                     {currentQuestions.map((q, index) => (
                       <tr
                         key={q.id}
-                        className={`hover:bg-blue-50/30 transition-colors group ${selectedItems.includes(q.id) ? "bg-blue-50/50" : ""}`}
+                        className={`hover:bg-blue-50/30 group ${selectedItems.includes(q.id) ? "bg-blue-50/50" : ""}`}
                       >
                         <td className="px-6 py-6 text-center">
                           <input
                             type="checkbox"
-                            className="w-4 h-4 rounded border-blue-200 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            className="w-4 h-4 rounded border-blue-200 text-blue-600 cursor-pointer"
                             checked={selectedItems.includes(q.id)}
                             onChange={() => handleCheckboxChange(q.id)}
                           />
@@ -392,7 +432,7 @@ const ManajemenPertanyaan = () => {
                         </td>
                         <td className="px-8 py-6">
                           <div className="flex flex-col gap-1">
-                            <p className="font-bold text-blue-900 text-sm leading-relaxed max-w-md">
+                            <p className="font-bold text-blue-900 text-sm max-w-md">
                               {q.teks_pertanyaan}
                             </p>
                             {(q.is_darurat === 1 || q.is_darurat === true) && (
@@ -416,13 +456,13 @@ const ManajemenPertanyaan = () => {
                           <div className="flex items-center justify-center gap-3">
                             <button
                               onClick={() => handleEditOpen(q)}
-                              className="p-2 text-blue-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all shadow-sm"
+                              className="p-2 text-blue-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl shadow-sm transition-all"
                             >
                               <PencilLine size={18} />
                             </button>
                             <button
                               onClick={() => handleDelete(q.id)}
-                              className="p-2 text-red-300 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all shadow-sm"
+                              className="p-2 text-red-300 hover:bg-red-50 hover:text-red-500 rounded-xl shadow-sm transition-all"
                             >
                               <Trash2 size={18} />
                             </button>
@@ -434,11 +474,10 @@ const ManajemenPertanyaan = () => {
                 </table>
               </div>
 
-              {/* FOOTER PAGINATION */}
+              {/* Pagination */}
               <div className="px-8 py-4 bg-white border-t border-blue-50 flex items-center justify-between">
                 <p className="text-xs font-bold text-blue-300">
-                  Menampilkan {currentQuestions.length} dari{" "}
-                  {filteredQuestions.length} data
+                  Menampilkan {currentQuestions.length} data
                 </p>
                 <div className="flex items-center gap-2">
                   <button
@@ -470,17 +509,20 @@ const ManajemenPertanyaan = () => {
           )}
         </div>
 
-        {/* --- MODAL TAMBAH / EDIT --- */}
+        {/* Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 bg-blue-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-            <div className="bg-white rounded-[40px] w-full max-w-lg p-10 shadow-2xl relative animate-in fade-in zoom-in duration-300">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white rounded-[40px] w-full max-w-lg p-10 shadow-2xl relative"
+            >
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute right-8 top-8 text-slate-300 hover:text-red-500 transition"
               >
                 <X size={24} />
               </button>
-
               <h3 className="text-2xl font-black text-blue-900 mb-2">
                 {isEditMode ? "Edit Pertanyaan" : "Tambah Pertanyaan"}
               </h3>
@@ -498,7 +540,7 @@ const ManajemenPertanyaan = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, kategori_id: e.target.value })
                     }
-                    className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-blue-900 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%231e40af%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-no-repeat bg-[position:right_1.5rem_center] bg-[length:18px]"
+                    className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 font-bold text-blue-900 outline-none appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%231e40af%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C/polyline%3E%3C/svg%3E')] bg-no-repeat bg-[position:right_1.5rem_center] bg-[length:18px]"
                   >
                     <option value="">Pilih Kategori...</option>
                     {categories.map((cat) => (
@@ -514,7 +556,7 @@ const ManajemenPertanyaan = () => {
                     Teks Pertanyaan
                   </label>
                   <textarea
-                    placeholder="Contoh: Apakah Anda mengalami sesak napas?"
+                    placeholder="Tuliskan pertanyaan di sini..."
                     value={formData.teks_pertanyaan}
                     onChange={(e) =>
                       setFormData({
@@ -522,7 +564,7 @@ const ManajemenPertanyaan = () => {
                         teks_pertanyaan: e.target.value,
                       })
                     }
-                    className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-medium text-blue-900 h-24"
+                    className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 font-medium text-blue-900 h-24 outline-none focus:ring-2 focus:ring-blue-100 transition-all"
                   />
                 </div>
 
@@ -545,31 +587,28 @@ const ManajemenPertanyaan = () => {
                           is_darurat: safeVal === 4,
                         });
                       }}
-                      className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-blue-900"
+                      className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 font-bold text-blue-900 outline-none"
                     />
                   </div>
-
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-blue-900 uppercase tracking-widest ml-1">
                       Tingkat Bahaya
                     </label>
                     <div
-                      onClick={() => {
-                        const nextDarurat = !formData.is_darurat;
+                      onClick={() =>
                         setFormData({
                           ...formData,
-                          is_darurat: nextDarurat,
-                          bobot: nextDarurat
+                          is_darurat: !formData.is_darurat,
+                          bobot: !formData.is_darurat
                             ? 4
                             : formData.bobot === 4
                               ? 3
                               : formData.bobot,
-                        });
-                      }}
-                      className={`flex items-center justify-center gap-2 py-4 px-6 rounded-2xl border cursor-pointer transition-all font-bold 
-                        ${formData.is_darurat ? "bg-red-50 border-red-200 text-red-500" : "bg-blue-50 border-blue-100 text-blue-400"}`}
+                        })
+                      }
+                      className={`flex items-center justify-center gap-2 py-4 px-6 rounded-2xl border cursor-pointer transition-all font-bold ${formData.is_darurat ? "bg-red-50 border-red-200 text-red-500" : "bg-blue-50 border-blue-100 text-blue-400"}`}
                     >
-                      <AlertCircle size={18} />
+                      <AlertCircle size={18} />{" "}
                       {formData.is_darurat ? "Darurat" : "Normal"}
                     </div>
                   </div>
@@ -595,7 +634,7 @@ const ManajemenPertanyaan = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
       </main>

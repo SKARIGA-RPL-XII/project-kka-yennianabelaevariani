@@ -126,7 +126,7 @@ const HasilSkrining = () => {
                 </p>
               </div>
               <button
-                onClick={() => navigate("/chatbot")}
+                onClick={() => navigate("/c")}
                 className="px-8 py-4 bg-white text-blue-600 font-extrabold rounded-2xl flex items-center gap-3 hover:bg-blue-50 hover:-translate-y-1 transition-all active:scale-95 shadow-lg"
               >
                 <MessageCircle size={22} strokeWidth={2.5} />

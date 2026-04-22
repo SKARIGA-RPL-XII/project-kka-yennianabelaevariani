@@ -1,13 +1,27 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "./component/sidebar";
-import { Search, Plus, Pencil, Trash2, Loader2, X } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  X,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ManajemenKategori = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // State untuk Notifikasi ala Profile
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -18,7 +32,17 @@ const ManajemenKategori = () => {
     deskripsi: "",
   });
 
-  // Fungsi pengecekan duplikat untuk UI (Border Merah)
+  // Fungsi helper untuk menampilkan pesan sementara
+  const showToast = (msg, isError = false) => {
+    if (isError) {
+      setError(msg);
+      setTimeout(() => setError(""), 3000);
+    } else {
+      setMessage(msg);
+      setTimeout(() => setMessage(""), 3000);
+    }
+  };
+
   const isDuplicateNama = categories.some(
     (cat) =>
       cat.nama.toLowerCase() === formData.nama.toLowerCase() &&
@@ -37,7 +61,7 @@ const ManajemenKategori = () => {
       const res = await axios.get("http://localhost:8000/api/kategori");
       setCategories(res.data.data);
     } catch (err) {
-      console.error("Gagal tarik data kategori:", err);
+      showToast("Gagal tarik data kategori gess.", true);
     } finally {
       setLoading(false);
     }
@@ -47,27 +71,20 @@ const ManajemenKategori = () => {
     fetchCategories();
   }, []);
 
-  // Logika Generate Kode Otomatis & Unik
   const generateUniqueCode = (name) => {
     if (!name || name.length < 3) return "";
-
     let cleanName = name.replace(/\s+/g, "").toUpperCase();
-    let suggestedCode = cleanName.substring(0, 3); // Coba 3 huruf depan
-
+    let suggestedCode = cleanName.substring(0, 3);
     const checkExist = (code) =>
       categories.some((cat) => cat.kode === code && cat.id !== editId);
 
     if (checkExist(suggestedCode)) {
-      // Jika depan sama, coba ambil tengah
       const middleIdx = Math.floor(cleanName.length / 2);
       suggestedCode = cleanName.substring(middleIdx - 1, middleIdx + 2);
     }
-
     if (checkExist(suggestedCode)) {
-      // Jika masih sama, ambil 3 huruf terakhir
       suggestedCode = cleanName.substring(cleanName.length - 3);
     }
-
     return suggestedCode.substring(0, 3);
   };
 
@@ -77,7 +94,7 @@ const ManajemenKategori = () => {
     setFormData({
       ...formData,
       nama: newNama,
-      kode: isEditMode ? formData.kode : newKode, // Auto generate hanya jika bukan mode edit, atau sesuaikan keinginan
+      kode: isEditMode ? formData.kode : newKode,
     });
   };
 
@@ -85,6 +102,8 @@ const ManajemenKategori = () => {
     setIsEditMode(false);
     setEditId(null);
     setFormData({ kode: "", nama: "", deskripsi: "" });
+    setError("");
+    setMessage("");
     setIsModalOpen(true);
   };
 
@@ -96,15 +115,19 @@ const ManajemenKategori = () => {
       nama: category.nama,
       deskripsi: category.deskripsi || "",
     });
+    setError("");
+    setMessage("");
     setIsModalOpen(true);
   };
 
   const handleSave = async () => {
-    if (!formData.kode || !formData.nama)
-      return alert("Kode dan Nama wajib diisi gess!");
+    if (!formData.kode || !formData.nama) {
+      return showToast("Kode dan Nama wajib diisi gess!", true);
+    }
 
-    if (isDuplicateNama || isDuplicateKode)
-      return alert("Nama atau Kode sudah ada, ganti yang lain gess!");
+    if (isDuplicateNama || isDuplicateKode) {
+      return showToast("Nama atau Kode sudah ada, ganti yang lain gess!", true);
+    }
 
     try {
       if (isEditMode) {
@@ -112,22 +135,24 @@ const ManajemenKategori = () => {
           `http://localhost:8000/api/kategori/${editId}`,
           formData,
         );
-        alert("Kategori berhasil diupdate!");
+        showToast("Kategori berhasil diupdate secara aman! ✨");
       } else {
         await axios.post("http://localhost:8000/api/kategori", formData);
-        alert("Kategori berhasil ditambah!");
+        showToast("Kategori baru berhasil ditambahkan! ✨");
       }
 
-      setIsModalOpen(false);
-      fetchCategories();
+      setTimeout(() => {
+        setIsModalOpen(false);
+        fetchCategories();
+      }, 1500);
     } catch (err) {
       if (err.response && err.response.status === 422) {
         const messages = Object.values(err.response.data.errors)
           .flat()
-          .join("\n");
-        alert("Gagal menyimpan:\n" + messages);
+          .join(", ");
+        showToast("Gagal: " + messages, true);
       } else {
-        alert("Koneksi gagal atau server mati.");
+        showToast("Koneksi gagal atau server mati.", true);
       }
     }
   };
@@ -140,9 +165,10 @@ const ManajemenKategori = () => {
     ) {
       try {
         await axios.delete(`http://localhost:8000/api/kategori/${id}`);
+        showToast("Kategori telah dihapus.");
         fetchCategories();
       } catch (err) {
-        alert("Gagal menghapus data.");
+        showToast("Gagal menghapus data.", true);
       }
     }
   };
@@ -157,13 +183,27 @@ const ManajemenKategori = () => {
     <div className="flex min-h-screen bg-[#F8FAFF]">
       <Sidebar />
 
-      <main className="flex-1 p-10">
+      <main className="flex-1 p-10 relative">
+        {/* Banner Notifikasi (Luar Modal) */}
+        <AnimatePresence>
+          {message && !isModalOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mb-6 p-4 bg-green-50 border border-green-100 text-green-600 rounded-2xl text-sm font-bold flex items-center gap-2 italic shadow-sm"
+            >
+              <CheckCircle2 size={18} /> {message}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <header className="flex items-center justify-between mb-10">
           <div>
-            <h2 className="text-3xl font-bold text-blue-900 mb-2">
+            <h2 className="text-4xl font-black text-[#1e40af] tracking-tight mb-2">
               Manajemen Kategori
             </h2>
-            <p className="text-[#60a5fa] font-medium text-lg">
+            <p className="text-slate-400 font-medium">
               Total ada {categories.length} kategori kesehatan yang aktif.
             </p>
           </div>
@@ -177,7 +217,7 @@ const ManajemenKategori = () => {
         </header>
 
         {/* Search Bar */}
-        <div className="bg-white p-5 rounded-[30px] shadow-sm border border-blue-50 mb-10">
+        <div className="bg-white p-5 rounded-[30px] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-white mb-10">
           <div className="relative w-full max-w-md">
             <Search
               className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300"
@@ -188,7 +228,7 @@ const ManajemenKategori = () => {
               placeholder="Cari kategori..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-3 px-12 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium"
+              className="w-full bg-[#F8FAFF] border border-blue-50 rounded-2xl py-3 px-12 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm font-medium"
             />
           </div>
         </div>
@@ -203,23 +243,22 @@ const ManajemenKategori = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {filteredCategories.map((cat) => (
-              <div
+              <motion.div
+                layout
                 key={cat.id}
-                className="bg-white p-8 rounded-[40px] shadow-sm border border-blue-50 hover:shadow-xl transition-all group relative overflow-hidden"
+                className="bg-white p-8 rounded-[40px] shadow-[0_10px_30px_rgba(0,0,0,0.02)] border border-white hover:shadow-xl transition-all group relative overflow-hidden"
               >
                 <div className="flex justify-end items-start mb-6">
                   <span className="bg-slate-100 text-slate-500 text-[10px] px-3 py-1 rounded-full font-black tracking-widest uppercase">
                     {cat.kode}
                   </span>
                 </div>
-
                 <h3 className="text-xl font-black text-blue-900 mb-2">
                   {cat.nama}
                 </h3>
                 <p className="text-sm font-medium text-[#60a5fa] mb-6 line-clamp-2 h-10">
-                  {cat.deskripsi || "Kategori gejala kesehatan sistem tubuh."}
+                  {cat.deskripsi || "Kategori kesehatan HealthMate."}
                 </p>
-
                 <div className="flex gap-3 pt-6 border-t border-blue-50">
                   <button
                     onClick={() => handleEdit(cat)}
@@ -234,15 +273,19 @@ const ManajemenKategori = () => {
                     <Trash2 size={16} />
                   </button>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         )}
 
-        {/* Modal Tambah/Edit */}
+        {/* Modal */}
         {isModalOpen && (
           <div className="fixed inset-0 bg-blue-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-6">
-            <div className="bg-white rounded-[40px] w-full max-w-lg p-10 shadow-2xl relative animate-in fade-in zoom-in duration-300">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white rounded-[40px] w-full max-w-lg p-10 shadow-2xl relative"
+            >
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="absolute right-8 top-8 text-slate-300 hover:text-red-500 transition"
@@ -253,38 +296,48 @@ const ManajemenKategori = () => {
               <h3 className="text-2xl font-black text-blue-900 mb-2">
                 {isEditMode ? "Update Kategori" : "Tambah Kategori Baru"}
               </h3>
-              <p className="text-blue-400 text-sm mb-8 font-medium">
-                {isEditMode
-                  ? "Ubah data kategori yang sudah ada."
-                  : "Buat klasifikasi gejala baru."}
-              </p>
+
+              {/* Notifikasi dalam Modal */}
+              <AnimatePresence mode="wait">
+                {message && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="mb-4 p-4 bg-green-50 border border-green-100 text-green-600 rounded-2xl text-xs font-bold flex items-center gap-2 italic"
+                  >
+                    <CheckCircle2 size={16} /> {message}
+                  </motion.div>
+                )}
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="mb-4 p-4 bg-red-50 border border-red-100 text-red-500 rounded-2xl text-xs font-bold flex items-center gap-2 italic"
+                  >
+                    <AlertCircle size={16} /> {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div className="space-y-5">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-blue-900 uppercase tracking-widest ml-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                     Nama Kategori
                   </label>
                   <input
                     type="text"
-                    placeholder="Contoh: Pernapasan"
                     value={formData.nama}
                     onChange={handleNamaChange}
-                    className={`w-full bg-[#F8FAFF] border ${isDuplicateNama ? "border-red-500 ring-2 ring-red-100" : "border-blue-100"} rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-blue-900`}
+                    className="w-full bg-[#F8FAFF] border border-blue-50 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-blue-900"
                   />
-                  {isDuplicateNama && (
-                    <p className="text-red-500 text-[10px] font-bold ml-1">
-                      Nama sudah digunakan!
-                    </p>
-                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-blue-900 uppercase tracking-widest ml-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                     Kode Kategori
                   </label>
                   <input
                     type="text"
-                    placeholder="CONTOH: PER"
                     maxLength={3}
                     value={formData.kode}
                     onChange={(e) =>
@@ -293,33 +346,27 @@ const ManajemenKategori = () => {
                         kode: e.target.value.toUpperCase(),
                       })
                     }
-                    className={`w-full bg-[#F8FAFF] border ${isDuplicateKode ? "border-red-500 ring-2 ring-red-100" : "border-blue-100"} rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-blue-900`}
+                    className="w-full bg-[#F8FAFF] border border-blue-50 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-bold text-blue-900"
                   />
-                  {isDuplicateKode && (
-                    <p className="text-red-500 text-[10px] font-bold ml-1">
-                      Kode sudah digunakan!
-                    </p>
-                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-blue-900 uppercase tracking-widest ml-1">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
                     Deskripsi
                   </label>
                   <textarea
-                    placeholder="Jelaskan secara singkat..."
                     value={formData.deskripsi}
                     onChange={(e) =>
                       setFormData({ ...formData, deskripsi: e.target.value })
                     }
-                    className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-medium text-blue-900 h-24"
+                    className="w-full bg-[#F8FAFF] border border-blue-50 rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-blue-100 font-medium text-blue-900 h-24"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-4">
                   <button
                     onClick={() => setIsModalOpen(false)}
-                    className="py-4 rounded-2xl font-bold text-blue-400 hover:bg-blue-50 transition"
+                    className="py-4 rounded-2xl font-bold text-slate-400 hover:bg-slate-50 transition"
                   >
                     Batalkan
                   </button>
@@ -332,7 +379,7 @@ const ManajemenKategori = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
       </main>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "./component/sidebar";
-import { Search, Trash2, Loader2, CheckSquare, Square } from "lucide-react";
+import { Search, Trash2, Loader2, CheckSquare, Square, X } from "lucide-react"; // Tambah X untuk icon close jika perlu
+import { motion, AnimatePresence } from "framer-motion"; // Tambahkan motion agar smooth seperti profil
 
 const ManajemenUser = () => {
   const [users, setUsers] = useState([]);
@@ -9,14 +10,19 @@ const ManajemenUser = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
 
+  // State untuk pesan notifikasi (seperti di Profile)
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
   const fetchUsers = async () => {
     try {
       setLoading(true);
       const response = await axios.get("http://localhost:8000/api/users");
       setUsers(response.data.data);
-    } catch (error) {
-      console.error("Gagal ambil data user:", error);
-      alert("Terjadi kesalahan koneksi ke server gess.");
+    } catch (err) {
+      console.error("Gagal ambil data user:", err);
+      setError("Terjadi kesalahan koneksi ke server gess.");
+      setTimeout(() => setError(""), 3000);
     } finally {
       setLoading(false);
     }
@@ -32,13 +38,15 @@ const ManajemenUser = () => {
         await axios.delete(`http://localhost:8000/api/users/${id}`);
         setUsers(users.filter((user) => user.id_user !== id));
         setSelectedUsers(selectedUsers.filter((item) => item !== id));
-      } catch (error) {
-        alert("Gagal menghapus user gess.");
+        setMessage("User berhasil dihapus dengan aman!");
+        setTimeout(() => setMessage(""), 3000);
+      } catch (err) {
+        setError("Gagal menghapus user gess.");
+        setTimeout(() => setError(""), 3000);
       }
     }
   };
 
-  // Fungsi untuk hapus banyak user sekaligus
   const handleBulkDelete = async () => {
     if (
       window.confirm(
@@ -46,7 +54,6 @@ const ManajemenUser = () => {
       )
     ) {
       try {
-        // Asumsi backend menerima array ID atau kamu bisa loop jika backend hanya support per ID
         await Promise.all(
           selectedUsers.map((id) =>
             axios.delete(`http://localhost:8000/api/users/${id}`),
@@ -55,9 +62,13 @@ const ManajemenUser = () => {
 
         setUsers(users.filter((user) => !selectedUsers.includes(user.id_user)));
         setSelectedUsers([]);
-        alert("Berhasil menghapus user terpilih gess!");
-      } catch (error) {
-        alert("Gagal menghapus beberapa user gess.");
+        setMessage(
+          `Berhasil menghapus ${selectedUsers.length} user secara massal! ✨`,
+        );
+        setTimeout(() => setMessage(""), 3000);
+      } catch (err) {
+        setError("Gagal menghapus beberapa user gess.");
+        setTimeout(() => setError(""), 3000);
       }
     }
   };
@@ -71,7 +82,10 @@ const ManajemenUser = () => {
   };
 
   const toggleSelectAll = () => {
-    if (selectedUsers.length === filteredUsers.length) {
+    if (
+      selectedUsers.length === filteredUsers.length &&
+      filteredUsers.length !== 0
+    ) {
       setSelectedUsers([]);
     } else {
       setSelectedUsers(filteredUsers.map((user) => user.id_user));
@@ -82,14 +96,11 @@ const ManajemenUser = () => {
     if (!tanggalLahir) return "-";
     const birthDate = new Date(tanggalLahir);
     const today = new Date();
-
     let umur = today.getFullYear() - birthDate.getFullYear();
     const bulan = today.getMonth() - birthDate.getMonth();
-
     if (bulan < 0 || (bulan === 0 && today.getDate() < birthDate.getDate())) {
       umur--;
     }
-
     return umur;
   };
 
@@ -103,18 +114,43 @@ const ManajemenUser = () => {
     <div className="flex min-h-screen bg-[#F8FAFF]">
       <Sidebar />
 
-      <main className="flex-1 p-10">
+      <main className="flex-1 p-10 relative">
+        {/* Notifikasi Message (Style dari Profile) */}
+        <AnimatePresence>
+          {message && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-10 right-10 z-50 p-4 bg-green-50 border border-green-100 text-green-600 rounded-2xl text-sm font-bold flex items-center gap-2 italic shadow-lg"
+            >
+              <span>✨</span> {message}
+            </motion.div>
+          )}
+
+          {/* Notifikasi Error (Style dari Profile) */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="fixed top-10 right-10 z-50 p-4 bg-red-50 border border-red-100 text-red-500 rounded-2xl text-sm font-bold flex items-center gap-2 italic shadow-lg"
+            >
+              <span>⚠️</span> {error}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <header className="mb-10 flex justify-between items-end">
           <div>
-            <h2 className="text-3xl font-bold text-blue-900 mb-2">
+            <h2 className="text-4xl font-black text-[#1e40af] tracking-tight mb-2">
               Manajemen Pengguna
             </h2>
-            <p className="text-[#60a5fa] font-medium">
-              Admin hanya dapat melihat dan menghapus data pengguna.
+            <p className="text-slate-400 font-medium">
+              Admin hanya dapat melihat dan menghapus data pengguna HealthMate.
             </p>
           </div>
 
-          {/* Tombol Hapus Massal - Muncul jika ada yang dipilih */}
           {selectedUsers.length > 0 && (
             <button
               onClick={handleBulkDelete}
@@ -127,10 +163,10 @@ const ManajemenUser = () => {
         </header>
 
         {/* Search */}
-        <div className="bg-white p-6 rounded-[30px] shadow-sm border border-blue-50 mb-8">
+        <div className="bg-white p-6 rounded-[30px] shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-white mb-8">
           <div className="relative w-full md:w-96">
             <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-300"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"
               size={18}
             />
             <input
@@ -138,28 +174,32 @@ const ManajemenUser = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Cari nama atau email user..."
-              className="w-full bg-[#F8FAFF] border border-blue-100 rounded-2xl py-3 px-12 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm"
+              className="w-full bg-[#F8FAFF] border border-slate-100 rounded-2xl py-3 px-12 focus:outline-none focus:ring-2 focus:ring-blue-100 text-sm font-semibold text-slate-600 transition-all"
             />
           </div>
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-[40px] shadow-sm border border-blue-50 overflow-hidden">
+        <div className="bg-white rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-white overflow-hidden">
           {loading ? (
             <div className="flex flex-col items-center justify-center p-20 gap-4">
-              <Loader2 className="animate-spin text-blue-600" size={40} />
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ repeat: Infinity, duration: 1 }}
+                className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full"
+              />
               <p className="text-blue-400 font-bold italic">
                 Sabar ya gess, lagi tarik data...
               </p>
             </div>
           ) : (
             <table className="w-full text-left text-sm">
-              <thead className="bg-[#F8FAFF] border-b border-blue-50">
+              <thead className="bg-[#F8FAFF] border-b border-slate-50">
                 <tr>
                   <th className="px-6 py-5 w-12 text-center">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 rounded border-blue-200 text-blue-600 focus:ring-blue-500"
+                      className="w-4 h-4 rounded-lg border-slate-200 text-blue-600 focus:ring-blue-500 cursor-pointer"
                       checked={
                         filteredUsers.length > 0 &&
                         selectedUsers.length === filteredUsers.length
@@ -167,17 +207,27 @@ const ManajemenUser = () => {
                       onChange={toggleSelectAll}
                     />
                   </th>
-                  <th className="px-6 py-5 font-bold text-blue-900">Nama</th>
-                  <th className="px-6 py-5 font-bold text-blue-900">Email</th>
-                  <th className="px-6 py-5 font-bold text-blue-900">JK</th>
-                  <th className="px-6 py-5 font-bold text-blue-900">Umur</th>
-                  <th className="px-6 py-5 font-bold text-blue-900">Telepon</th>
-                  <th className="px-6 py-5 font-bold text-blue-900 text-center">
+                  <th className="px-6 py-5 font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+                    Nama
+                  </th>
+                  <th className="px-6 py-5 font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+                    Email
+                  </th>
+                  <th className="px-6 py-5 font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+                    JK
+                  </th>
+                  <th className="px-6 py-5 font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+                    Umur
+                  </th>
+                  <th className="px-6 py-5 font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+                    Telepon
+                  </th>
+                  <th className="px-6 py-5 font-bold text-slate-900 uppercase tracking-wider text-[11px] text-center">
                     Aksi
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-blue-50">
+              <tbody className="divide-y divide-slate-50">
                 {filteredUsers.length > 0 ? (
                   filteredUsers.map((user) => (
                     <tr
@@ -187,29 +237,35 @@ const ManajemenUser = () => {
                       <td className="px-6 py-5 text-center">
                         <input
                           type="checkbox"
-                          className="w-4 h-4 rounded border-blue-200 text-blue-600 focus:ring-blue-500"
+                          className="w-4 h-4 rounded-lg border-slate-200 text-blue-600 focus:ring-blue-500 cursor-pointer"
                           checked={selectedUsers.includes(user.id_user)}
                           onChange={() => handleSelectUser(user.id_user)}
                         />
                       </td>
-                      <td className="px-6 py-5 font-bold text-blue-900 flex items-center gap-3">
+                      <td className="px-6 py-5 font-bold text-slate-800 flex items-center gap-3">
                         <img
                           src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.nama}`}
-                          className="w-9 h-9 rounded-full bg-blue-100"
+                          className="w-9 h-9 rounded-xl bg-blue-100 shadow-sm"
                           alt="avatar"
                         />
                         {user.nama}
                       </td>
-                      <td className="px-6 py-5 text-blue-400">{user.email}</td>
-                      <td className="px-6 py-5">{user.jenis_kelamin ?? "-"}</td>
-                      <td className="px-6 py-5">
+                      <td className="px-6 py-5 text-blue-500 font-medium">
+                        {user.email}
+                      </td>
+                      <td className="px-6 py-5 text-slate-600 font-medium">
+                        {user.jenis_kelamin ?? "-"}
+                      </td>
+                      <td className="px-6 py-5 text-slate-600 font-medium">
                         {hitungUmur(user.tanggal_lahir)} th
                       </td>
-                      <td className="px-6 py-5">{user.telepon ?? "-"}</td>
+                      <td className="px-6 py-5 text-slate-600 font-medium">
+                        {user.telepon ?? "-"}
+                      </td>
                       <td className="px-6 py-5 text-center">
                         <button
                           onClick={() => handleDelete(user.id_user)}
-                          className="p-2 text-red-400 hover:bg-red-50 hover:text-red-600 rounded-xl transition-all"
+                          className="p-2 text-red-400 hover:bg-red-50 hover:text-red-500 rounded-xl transition-all"
                         >
                           <Trash2 size={18} />
                         </button>
@@ -220,7 +276,7 @@ const ManajemenUser = () => {
                   <tr>
                     <td
                       colSpan="7"
-                      className="text-center py-10 text-slate-400 italic"
+                      className="text-center py-20 text-slate-400 italic font-medium"
                     >
                       User tidak ditemukan gess...
                     </td>

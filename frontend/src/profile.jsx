@@ -181,7 +181,7 @@ const Profile = () => {
             className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.03)] border border-white"
           >
             {message && (
-              <div className="mb-8 p-4 bg-blue-50 border border-blue-100 text-blue-600 rounded-2xl text-sm font-bold flex items-center gap-2 italic">
+              <div className="mb-8 p-4 bg-green-50 border border-green-100 text-green-600 rounded-2xl text-sm font-bold flex items-center gap-2 italic">
                 <span>✨</span> {message}
               </div>
             )}

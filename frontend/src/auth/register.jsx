@@ -28,6 +28,7 @@ const SignUpScreen = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState(""); // State baru untuk sukses
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -35,21 +36,18 @@ const SignUpScreen = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // VALIDASI NAMA: Hanya boleh huruf dan spasi
     if (name === "nama") {
       const lettersOnly = value.replace(/[^a-zA-Z\s]/g, "");
       setFormData((prev) => ({ ...prev, [name]: lettersOnly }));
       return;
     }
 
-    // VALIDASI TELEPON: Hanya boleh angka
     if (name === "phone") {
       const numbersOnly = value.replace(/[^0-9]/g, "");
       setFormData((prev) => ({ ...prev, [name]: numbersOnly }));
       return;
     }
 
-    // Default untuk field lainnya
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -60,6 +58,7 @@ const SignUpScreen = () => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccessMessage("");
 
     try {
       const response = await axios.post("http://localhost:8000/api/register", {
@@ -74,8 +73,14 @@ const SignUpScreen = () => {
       });
 
       if (response.status === 201 || response.status === 200) {
-        alert("Registrasi Berhasil! Silakan Login.");
-        navigate("/login");
+        setSuccessMessage(
+          "Registrasi Berhasil! Mengalihkan ke halaman login...",
+        );
+
+        // Delay navigasi agar user bisa melihat pesan sukses
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
       }
     } catch (err) {
       setError(
@@ -148,23 +153,34 @@ const SignUpScreen = () => {
               </p>
             </div>
 
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
+              {/* Pesan Error (Style Profil) */}
               {error && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mb-6 overflow-hidden"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-3"
                 >
-                  <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-semibold flex items-center gap-3">
-                    <span className="flex-shrink-0">⚠️</span> {error}
-                  </div>
+                  <span className="flex-shrink-0">⚠️</span> {error}
+                </motion.div>
+              )}
+
+              {/* Pesan Sukses (Style Profil) */}
+              {successMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="mb-6 p-4 bg-green-50 border border-green-100 text-green-600 rounded-2xl text-sm font-bold flex items-center gap-3 italic"
+                >
+                  <span className="flex-shrink-0">✨</span> {successMessage}
                 </motion.div>
               )}
             </AnimatePresence>
 
             <form className="space-y-5" onSubmit={handleRegister}>
-              {/* Nama Lengkap - Huruf Saja */}
+              {/* Nama Lengkap */}
               <div className="space-y-2">
                 <label className="text-[12px] font-bold text-slate-400 ml-1 uppercase tracking-widest">
                   Nama Lengkap
@@ -278,7 +294,7 @@ const SignUpScreen = () => {
                 </div>
               </div>
 
-              {/* Password dengan Fitur Mata */}
+              {/* Password */}
               <div className="space-y-2">
                 <label className="text-[12px] font-bold text-slate-400 ml-1 uppercase tracking-widest">
                   Password

@@ -7,7 +7,7 @@ const SkriningAwal = () => {
     const navigate = useNavigate();
   const infoCards = [
     { label: "Jenis Skrining:", value: "Skrining Gejala Kesehatan" },
-    { label: "Jumlah Pertanyaan:", value: "35 Pertanyaan" },
+    { label: "Jumlah Pertanyaan:", value: "17 Pertanyaan" },
     { label: "Durasi:", value: "Estimasi 5-10 Menit" },
   ];
 
